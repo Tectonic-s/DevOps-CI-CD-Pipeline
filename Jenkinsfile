@@ -2,6 +2,7 @@ pipeline {
     agent any
 
     environment {
+        PATH              = "/usr/local/bin:/opt/homebrew/bin:${env.PATH}"
         APP_NAME          = 'movie-recommender'
         DOCKER_REGISTRY   = 'docker.io'
         DOCKER_IMAGE      = "${DOCKER_REGISTRY}/your-dockerhub-user/${APP_NAME}"
@@ -12,7 +13,9 @@ pipeline {
 
     parameters {
         choice(name: 'DEPLOY_ENV', choices: ['staging', 'production'], description: 'Deployment Environment')
-        booleanParam(name: 'RUN_DEPLOY', defaultValue: true, description: 'Trigger Ansible deployment stage after build?')
+        string(name: 'DOCKER_USER', defaultValue: 'your-dockerhub-user', description: 'Docker Hub Username / Organization')
+        booleanParam(name: 'PUSH_IMAGE', defaultValue: false, description: 'Push image to Docker registry? (Requires dockerhub-credentials)')
+        booleanParam(name: 'RUN_DEPLOY', defaultValue: false, description: 'Trigger Ansible deployment stage after build?')
     }
 
     options {
@@ -51,21 +54,26 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                echo "Building Docker container image: ${DOCKER_IMAGE}:${DOCKER_TAG}"
+                echo "Building Docker container image..."
                 sh '''
-                    docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} -t ${DOCKER_IMAGE}:latest .
+                    IMAGE="${DOCKER_REGISTRY}/${params.DOCKER_USER}/${APP_NAME}"
+                    docker build -t ${APP_NAME}:latest -t ${IMAGE}:${DOCKER_TAG} -t ${IMAGE}:latest .
                 '''
             }
         }
 
         stage('Push Docker Image') {
+            when {
+                expression { return params.PUSH_IMAGE }
+            }
             steps {
                 echo "Authenticating and pushing image to registry..."
                 withCredentials([usernamePassword(credentialsId: "${DOCKER_CREDS_ID}", usernameVariable: 'REGISTRY_USER', passwordVariable: 'REGISTRY_PASS')]) {
                     sh '''
+                        IMAGE="${DOCKER_REGISTRY}/${params.DOCKER_USER}/${APP_NAME}"
                         echo "$REGISTRY_PASS" | docker login ${DOCKER_REGISTRY} -u "$REGISTRY_USER" --password-stdin
-                        docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
-                        docker push ${DOCKER_IMAGE}:latest
+                        docker push ${IMAGE}:${DOCKER_TAG}
+                        docker push ${IMAGE}:latest
                     '''
                 }
             }
@@ -79,11 +87,12 @@ pipeline {
                 echo "Triggering Ansible CD Deployment to [${params.DEPLOY_ENV}]..."
                 withCredentials([sshUserPrivateKey(credentialsId: "${ANSIBLE_CREDS_ID}", keyFileVariable: 'ANSIBLE_KEY', usernameVariable: 'ANSIBLE_USER')]) {
                     sh '''
+                        IMAGE="${DOCKER_REGISTRY}/${params.DOCKER_USER}/${APP_NAME}"
                         ansible-playbook -i ansible/inventory.ini ansible/deploy.yml \
                             -u $ANSIBLE_USER \
                             --private-key $ANSIBLE_KEY \
                             -e "target_env=${params.DEPLOY_ENV}" \
-                            -e "docker_image=${DOCKER_IMAGE}" \
+                            -e "docker_image=${IMAGE}" \
                             -e "docker_tag=${DOCKER_TAG}" \
                             -e "container_port=5001" \
                             -e "host_port=5001"
