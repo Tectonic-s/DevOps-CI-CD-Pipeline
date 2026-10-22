@@ -1,0 +1,26 @@
+# Git & VCS
+.git/
+.gitignore
+
+# Virtual Environments
+.venv/
+venv/
+env/
+
+# Python Bytecode and Caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local OS & IDE artifacts
+.DS_Store
+.idea/
+.vscode/
+
+# Local data generation caches
+data/poster_cache.json
+*.log

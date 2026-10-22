@@ -1,0 +1,275 @@
+"""
+recommender.py - TF-IDF Movie Recommendation Engine
+Implements content-based filtering using Term Frequency-Inverse Document Frequency (TF-IDF)
+and Cosine Similarity, with feature explainability.
+"""
+
+import os
+import re
+import pandas as pd
+import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
+
+class MovieRecommender:
+    def __init__(self, dataset_path=None):
+        if dataset_path is None:
+            dataset_path = os.path.join(os.path.dirname(__file__), "data", "movies.csv")
+        self.dataset_path = dataset_path
+        self.df = None
+        self.vectorizer = None
+        self.tfidf_matrix = None
+        self.cosine_sim = None
+        self.indices = {}  # Map movie_id and title to row index
+        self.feature_names = []
+        self.load_and_fit()
+
+    def _clean_text(self, text):
+        if not isinstance(text, str):
+            return ""
+        # Lowercase and clean special chars
+        text = text.lower()
+        text = re.sub(r"[^\w\s-]", " ", text)
+        return " ".join(text.split())
+
+    def _create_metadata_soup(self, row):
+        """
+        Creates a weighted content 'soup' combining:
+        - Genres (repeated twice for genre affinity)
+        - Keywords (repeated twice for thematic affinity)
+        - Director (un-joined and underscore-joined for exact entity and name matching)
+        - Cast (lead cast members)
+        - Overview (narrative plot synopsis)
+        """
+        raw_genres = [g.strip().lower() for g in str(row.get("genres", "")).split(",") if g.strip()]
+        genres_str = " ".join(raw_genres) + " " + " ".join([g.replace(" ", "").replace("-", "") for g in raw_genres])
+        
+        keywords = self._clean_text(str(row.get("keywords", "")))
+        
+        director_raw = str(row.get("director", "")).strip()
+        director_clean = self._clean_text(director_raw)
+        director_token = director_clean.replace(" ", "_")
+        
+        cast_raw = [self._clean_text(c).strip() for c in str(row.get("cast", "")).split(",")[:4]]
+        cast_tokens = " ".join([c.replace(" ", "_") for c in cast_raw])
+        cast_names = " ".join(cast_raw)
+        
+        overview = self._clean_text(str(row.get("overview", "")))
+
+        # Weighted combination to balance narrative semantics with genre/director/cast
+        soup = f"{genres_str} {genres_str} {keywords} {keywords} {director_token} {director_token} {director_clean} {cast_tokens} {cast_names} {overview}"
+        return soup
+
+    def load_and_fit(self):
+        """Loads dataset and fits the TF-IDF vectorizer and cosine similarity matrix."""
+        if not os.path.exists(self.dataset_path):
+            raise FileNotFoundError(f"Dataset not found at {self.dataset_path}")
+
+        self.df = pd.read_csv(self.dataset_path)
+        # Ensure ID is integer
+        self.df["id"] = self.df["id"].astype(int)
+
+        # Generate metadata soup
+        self.df["soup"] = self.df.apply(self._create_metadata_soup, axis=1)
+
+        # Build index lookups
+        self.indices = {row["id"]: idx for idx, row in self.df.iterrows()}
+        self.title_to_id = {row["title"].lower().strip(): row["id"] for _, row in self.df.iterrows()}
+
+        # Initialize TF-IDF Vectorizer
+        # Using sublinear_tf=True (1 + log(TF)), English stop words, unigrams and bigrams
+        self.vectorizer = TfidfVectorizer(
+            stop_words="english",
+            max_features=5000,
+            ngram_range=(1, 2),
+            sublinear_tf=True,
+            token_pattern=r"(?u)\b[\w-]+\b"
+        )
+
+        self.tfidf_matrix = self.vectorizer.fit_transform(self.df["soup"])
+        self.cosine_sim = cosine_similarity(self.tfidf_matrix, self.tfidf_matrix)
+        self.feature_names = np.array(self.vectorizer.get_feature_names_out())
+
+        print(f"TF-IDF Engine fitted successfully. Shape: {self.tfidf_matrix.shape}")
+
+    def get_all_movies(self):
+        """Returns lightweight list of all movies for search and dropdowns."""
+        return self.df[["id", "title", "year", "genres", "rating", "poster_url", "director"]].to_dict(orient="records")
+
+    def get_movie_by_id(self, movie_id):
+        """Fetch complete details of a single movie."""
+        if movie_id not in self.indices:
+            return None
+        idx = self.indices[movie_id]
+        movie = self.df.iloc[idx].to_dict()
+        movie["top_keywords"] = self.get_top_keywords_for_movie(movie_id, top_n=6)
+        return movie
+
+    def get_top_keywords_for_movie(self, movie_id, top_n=8):
+        """Returns the top TF-IDF terms and their weights for a given movie."""
+        if movie_id not in self.indices:
+            return []
+        idx = self.indices[movie_id]
+        row_vector = self.tfidf_matrix[idx].toarray().flatten()
+        top_indices = row_vector.argsort()[::-1][:top_n]
+
+        results = []
+        for i in top_indices:
+            score = float(row_vector[i])
+            if score > 0:
+                results.append({
+                    "term": self.feature_names[i],
+                    "tfidf_score": round(score, 4)
+                })
+        return results
+
+    def _explain_pair(self, idx_a, idx_b, top_n=5):
+        """
+        Explains why movie B is similar to movie A using component-wise TF-IDF dot products.
+        Score = TF-IDF_A(term) * TF-IDF_B(term)
+        """
+        vec_a = self.tfidf_matrix[idx_a].toarray().flatten()
+        vec_b = self.tfidf_matrix[idx_b].toarray().flatten()
+
+        shared_scores = vec_a * vec_b
+        top_shared_indices = shared_scores.argsort()[::-1][:top_n]
+
+        shared_terms = []
+        for i in top_shared_indices:
+            score = float(shared_scores[i])
+            if score > 0:
+                shared_terms.append({
+                    "term": self.feature_names[i],
+                    "contribution": round(score, 4)
+                })
+        return shared_terms
+
+    def recommend_by_movie_id(self, movie_id, top_n=8, genre_filter=None, min_rating=0.0):
+        """
+        Returns top N recommendations for a specific movie ID using Cosine Similarity on TF-IDF.
+        Also includes explanation of shared keywords.
+        """
+        if movie_id not in self.indices:
+            return []
+
+        source_idx = self.indices[movie_id]
+        sim_scores = list(enumerate(self.cosine_sim[source_idx]))
+
+        # Sort by similarity score descending (excluding itself)
+        sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
+
+        recommendations = []
+        for idx, score in sim_scores:
+            if idx == source_idx:
+                continue
+
+            row = self.df.iloc[idx]
+
+            # Apply genre filter if specified
+            if genre_filter and genre_filter.lower() != "all":
+                genres = [g.strip().lower() for g in str(row["genres"]).split(",")]
+                if genre_filter.lower() not in genres:
+                    continue
+
+            # Apply rating filter
+            if float(row["rating"]) < min_rating:
+                continue
+
+            # Explain recommendation
+            shared_terms = self._explain_pair(source_idx, idx, top_n=4)
+
+            movie_dict = row.to_dict()
+            movie_dict["similarity_score"] = round(float(score), 4)
+            movie_dict["similarity_percent"] = round(float(score) * 100, 1)
+            movie_dict["shared_terms"] = shared_terms
+            recommendations.append(movie_dict)
+
+            if len(recommendations) >= top_n:
+                break
+
+        return recommendations
+
+    def recommend_by_free_text(self, text_prompt, top_n=8, genre_filter=None, min_rating=0.0):
+        """
+        Allows users to input natural language plot ideas or mood descriptions.
+        Transforms the query vector via fitted TF-IDF and computes cosine similarity against all movies.
+        """
+        if not text_prompt or not text_prompt.strip():
+            return []
+
+        clean_prompt = self._clean_text(text_prompt)
+        query_vec = self.vectorizer.transform([clean_prompt])
+        cosine_scores = cosine_similarity(query_vec, self.tfidf_matrix).flatten()
+
+        sorted_indices = cosine_scores.argsort()[::-1]
+
+        # Extract non-zero terms in user query
+        query_dense = query_vec.toarray().flatten()
+        query_term_indices = np.where(query_dense > 0)[0]
+
+        recommendations = []
+        for idx in sorted_indices:
+            score = float(cosine_scores[idx])
+            if score <= 0.001:
+                # If similarity is negligible, stop or skip
+                continue
+
+            row = self.df.iloc[idx]
+
+            # Genre filter
+            if genre_filter and genre_filter.lower() != "all":
+                genres = [g.strip().lower() for g in str(row["genres"]).split(",")]
+                if genre_filter.lower() not in genres:
+                    continue
+
+            # Rating filter
+            if float(row["rating"]) < min_rating:
+                continue
+
+            # Shared terms calculation between query and movie
+            movie_vec = self.tfidf_matrix[idx].toarray().flatten()
+            shared_terms = []
+            for t_idx in query_term_indices:
+                contrib = float(query_dense[t_idx] * movie_vec[t_idx])
+                if contrib > 0:
+                    shared_terms.append({
+                        "term": self.feature_names[t_idx],
+                        "contribution": round(contrib, 4)
+                    })
+            shared_terms = sorted(shared_terms, key=lambda x: x["contribution"], reverse=True)[:4]
+
+            movie_dict = row.to_dict()
+            movie_dict["similarity_score"] = round(score, 4)
+            movie_dict["similarity_percent"] = round(score * 100, 1)
+            movie_dict["shared_terms"] = shared_terms
+            recommendations.append(movie_dict)
+
+            if len(recommendations) >= top_n:
+                break
+
+        return recommendations
+
+    def get_corpus_stats(self):
+        """Returns analytical statistics about the TF-IDF model."""
+        idfs = self.vectorizer.idf_
+        top_idf_indices = np.argsort(idfs)[::-1][:15]
+        lowest_idf_indices = np.argsort(idfs)[:15]
+
+        top_rare_terms = [{"term": self.feature_names[i], "idf": round(float(idfs[i]), 3)} for i in top_idf_indices]
+        most_common_terms = [{"term": self.feature_names[i], "idf": round(float(idfs[i]), 3)} for i in lowest_idf_indices]
+
+        # Extract unique genres
+        all_genres = set()
+        for g_list in self.df["genres"].dropna():
+            for g in str(g_list).split(","):
+                all_genres.add(g.strip())
+
+        return {
+            "total_movies": len(self.df),
+            "vocab_size": len(self.feature_names),
+            "matrix_shape": list(self.tfidf_matrix.shape),
+            "genres": sorted(list(all_genres)),
+            "sample_high_idf_terms": top_rare_terms,
+            "sample_common_terms": most_common_terms
+        }

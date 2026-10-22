@@ -1,0 +1,20 @@
+services:
+  movie-recommender:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: movie-recommender:latest
+    container_name: cinematch_app
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+    environment:
+      - PORT=5001
+      - HOST=0.0.0.0
+      - FLASK_ENV=production
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
