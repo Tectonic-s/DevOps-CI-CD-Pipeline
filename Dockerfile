@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1
 FROM python:3.11-slim
 
 # Set environment variables for Python performance & container execution
