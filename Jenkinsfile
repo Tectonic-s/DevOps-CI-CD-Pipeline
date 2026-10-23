@@ -2,21 +2,19 @@ pipeline {
     agent any
 
     environment {
-        PATH              = "/usr/local/bin:/opt/homebrew/bin:${env.PATH}"
+        PATH              = "/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin:${env.PATH}"
         APP_NAME          = 'movie-recommender'
         DOCKER_REGISTRY   = 'docker.io'
-        DOCKER_USER       = "${params.DOCKER_USER ?: 'your-dockerhub-user'}"
-        DOCKER_IMAGE      = "${DOCKER_REGISTRY}/${DOCKER_USER}/${APP_NAME}"
         DOCKER_TAG        = "${BUILD_NUMBER}-${GIT_COMMIT.take(7)}"
-        DOCKER_CREDS_ID   = 'dockerhub-credentials'   // Jenkins Credential ID for Docker Registry
-        ANSIBLE_CREDS_ID  = 'ansible-ssh-key'         // Jenkins Credential ID for Ansible deployment SSH key
+        DOCKER_CREDS_ID   = 'dockerhub-credentials'
+        ANSIBLE_CREDS_ID  = 'ansible-ssh-key'
     }
 
     parameters {
-        choice(name: 'DEPLOY_ENV', choices: ['staging', 'production'], description: 'Deployment Environment')
+        choice(name: 'DEPLOY_ENV', choices: ['local', 'staging', 'production'], description: 'Deployment Target Environment')
         string(name: 'DOCKER_USER', defaultValue: 'your-dockerhub-user', description: 'Docker Hub Username / Organization')
         booleanParam(name: 'PUSH_IMAGE', defaultValue: false, description: 'Push image to Docker registry? (Requires dockerhub-credentials)')
-        booleanParam(name: 'RUN_DEPLOY', defaultValue: false, description: 'Trigger Ansible deployment stage after build?')
+        booleanParam(name: 'RUN_ANSIBLE', defaultValue: false, description: 'Trigger Ansible deployment to remote staging/production?')
     }
 
     options {
@@ -36,7 +34,7 @@ pipeline {
 
         stage('Lint & Unit Tests') {
             steps {
-                echo "Setting up Python virtual environment and running test suite..."
+                echo "Running automated test suite with pytest..."
                 sh '''
                     python3 -m venv .ci_venv
                     . .ci_venv/bin/activate
@@ -55,9 +53,29 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                echo "Building Docker container image: ${DOCKER_IMAGE}:${DOCKER_TAG}"
+                echo "Building Docker container image..."
                 sh '''
-                    docker build -t ${APP_NAME}:latest -t ${DOCKER_IMAGE}:${DOCKER_TAG} -t ${DOCKER_IMAGE}:latest .
+                    docker build -t ${APP_NAME}:latest -t ${APP_NAME}:${DOCKER_TAG} .
+                '''
+            }
+        }
+
+        stage('Deploy Local Container & Healthcheck') {
+            when {
+                expression { return !params.RUN_ANSIBLE }
+            }
+            steps {
+                echo "Deploying container locally and running health probe..."
+                sh '''
+                    docker stop cinematch_app >/dev/null 2>&1 || true
+                    docker rm cinematch_app >/dev/null 2>&1 || true
+                    docker run -d --name cinematch_app -p 5001:5001 ${APP_NAME}:latest
+                    sleep 4
+                    curl -f http://127.0.0.1:5001/health
+                    echo ""
+                    echo "=========================================================="
+                    echo "🎉 CineMatch AI is LIVE and Healthy on http://localhost:5001"
+                    echo "=========================================================="
                 '''
             }
         }
@@ -70,9 +88,12 @@ pipeline {
                 echo "Authenticating and pushing image to registry..."
                 withCredentials([usernamePassword(credentialsId: "${DOCKER_CREDS_ID}", usernameVariable: 'REGISTRY_USER', passwordVariable: 'REGISTRY_PASS')]) {
                     sh '''
+                        FULL_IMAGE="${DOCKER_REGISTRY}/${params.DOCKER_USER}/${APP_NAME}"
+                        docker tag ${APP_NAME}:latest ${FULL_IMAGE}:latest
+                        docker tag ${APP_NAME}:${DOCKER_TAG} ${FULL_IMAGE}:${DOCKER_TAG}
                         echo "$REGISTRY_PASS" | docker login ${DOCKER_REGISTRY} -u "$REGISTRY_USER" --password-stdin
-                        docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
-                        docker push ${DOCKER_IMAGE}:latest
+                        docker push ${FULL_IMAGE}:${DOCKER_TAG}
+                        docker push ${FULL_IMAGE}:latest
                     '''
                 }
             }
@@ -80,17 +101,18 @@ pipeline {
 
         stage('Deploy via Ansible') {
             when {
-                expression { return params.RUN_DEPLOY }
+                expression { return params.RUN_ANSIBLE }
             }
             steps {
                 echo "Triggering Ansible CD Deployment to [${params.DEPLOY_ENV}]..."
                 withCredentials([sshUserPrivateKey(credentialsId: "${ANSIBLE_CREDS_ID}", keyFileVariable: 'ANSIBLE_KEY', usernameVariable: 'ANSIBLE_USER')]) {
                     sh '''
+                        FULL_IMAGE="${DOCKER_REGISTRY}/${params.DOCKER_USER}/${APP_NAME}"
                         ansible-playbook -i ansible/inventory.ini ansible/deploy.yml \
                             -u $ANSIBLE_USER \
                             --private-key $ANSIBLE_KEY \
-                            -e "target_env=${DEPLOY_ENV}" \
-                            -e "docker_image=${DOCKER_IMAGE}" \
+                            -e "target_env=${params.DEPLOY_ENV}" \
+                            -e "docker_image=${FULL_IMAGE}" \
                             -e "docker_tag=${DOCKER_TAG}" \
                             -e "container_port=5001" \
                             -e "host_port=5001"
@@ -102,7 +124,7 @@ pipeline {
 
     post {
         success {
-            echo "🎉 Pipeline finished successfully! CineMatch AI is live on ${params.DEPLOY_ENV}."
+            echo "🎉 Pipeline finished successfully! CineMatch AI is live on http://localhost:5001"
         }
         failure {
             echo "❌ Pipeline failed! Please inspect stage logs above."
@@ -110,7 +132,6 @@ pipeline {
         cleanup {
             sh '''
                 rm -rf .ci_venv reports
-                docker image prune -f || true
             '''
         }
     }
