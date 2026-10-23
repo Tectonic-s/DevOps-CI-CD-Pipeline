@@ -265,16 +265,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const sharedTermsHtml = movie.shared_terms && movie.shared_terms.length > 0 ? `
                 <div class="shared-terms-container">
-                    <span class="shared-terms-label"><i class="fa-solid fa-code-compare"></i> Key TF-IDF Links:</span>
+                    <span class="shared-terms-label"><i class="fa-solid fa-link"></i> Thematic DNA:</span>
                     <div class="shared-terms-chips">
-                        ${movie.shared_terms.map(t => `<span class="shared-term-chip" title="Score: ${t.contribution}">${t.term}</span>`).join("")}
+                        ${movie.shared_terms.map(t => `<span class="shared-term-chip" title="Contribution: ${t.contribution}">${t.term}</span>`).join("")}
                     </div>
                 </div>
             ` : '';
 
             const similarityBadgeHtml = movie.similarity_percent !== undefined ? `
                 <div class="similarity-badge ${isHighMatch ? 'high-match' : ''}">
-                    <i class="fa-solid fa-gauge-high"></i> ${movie.similarity_percent}% Match
+                    ${movie.similarity_percent}% Affinity
                 </div>
             ` : '';
 
@@ -303,10 +303,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         <div class="movie-card-actions">
                             <button class="btn-card-action primary btn-inspect" data-id="${movie.id}">
-                                <i class="fa-solid fa-magnifying-glass-chart"></i> Inspect
+                                <i class="fa-regular fa-file-lines"></i> Details
                             </button>
                             <button class="btn-card-action btn-find-similar" data-id="${movie.id}">
-                                <i class="fa-solid fa-wand-magic-sparkles"></i> More Like This
+                                <i class="fa-solid fa-compass"></i> Find Similar
                             </button>
                         </div>
                     </div>

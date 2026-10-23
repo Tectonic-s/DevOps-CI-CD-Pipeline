@@ -3,151 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CineMatch AI — Movie Recommender Using TF-IDF Algorithm</title>
-    <meta name="description" content="Discover movies using mathematical Natural Language Processing, TF-IDF vectorization, and Cosine Similarity. Explore explainable recommendations with real-time keyword contributions.">
-    <!-- Google Fonts -->
+    <title>CineMatch AI — Intelligent Film Recommendation Engine</title>
+    <meta name="description" content="Cinematic discovery powered by high-dimensional narrative vectorization and cosine affinity. Explore transparent film connections and thematic DNA.">
+    
+    <!-- Google Fonts: Plus Jakarta Sans & Space Grotesk -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- FontAwesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome 6 Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <!-- Background Ambient Glows -->
-    <div class="ambient-glow glow-1"></div>
-    <div class="ambient-glow glow-2"></div>
-    <div class="ambient-glow glow-3"></div>
-
-    <!-- Navigation Header -->
+    <!-- Top Navigation Bar -->
     <header class="app-header">
         <div class="header-container">
-            <div class="brand-logo" id="brand-logo-btn">
-                <div class="logo-icon-wrapper">
+            <div class="brand-logo" id="brand-logo-btn" role="button" tabindex="0">
+                <div class="logo-mark">
                     <i class="fa-solid fa-film"></i>
                 </div>
                 <div class="brand-text">
-                    <span class="brand-name">Cine<span class="gradient-text">Match</span></span>
-                    <span class="brand-tag">TF-IDF Vector Engine</span>
+                    <span class="brand-title">CineMatch<span class="brand-accent">.AI</span></span>
+                    <span class="brand-subtitle">Thematic Vector Discovery</span>
                 </div>
             </div>
 
             <nav class="nav-tabs" role="tablist">
                 <button class="nav-tab active" data-tab="tab-recommend" id="btn-tab-recommend">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i> Movie Match
+                    <i class="fa-solid fa-compass"></i>
+                    <span>Similar Films</span>
                 </button>
                 <button class="nav-tab" data-tab="tab-prompt" id="btn-tab-prompt">
-                    <i class="fa-solid fa-brain"></i> Story / Prompt Search
+                    <i class="fa-solid fa-pen-nib"></i>
+                    <span>Curate by Mood</span>
                 </button>
                 <button class="nav-tab" data-tab="tab-compare" id="btn-tab-compare">
-                    <i class="fa-solid fa-scale-balanced"></i> Compare 2 Movies
+                    <i class="fa-solid fa-code-compare"></i>
+                    <span>Double Feature</span>
                 </button>
                 <button class="nav-tab" data-tab="tab-visualizer" id="btn-tab-visualizer">
-                    <i class="fa-solid fa-chart-line"></i> TF-IDF Visualizer
+                    <i class="fa-solid fa-chart-simple"></i>
+                    <span>Corpus Analytics</span>
                 </button>
                 <button class="nav-tab" data-tab="tab-watchlist" id="btn-tab-watchlist">
-                    <i class="fa-solid fa-bookmark"></i> Watchlist
+                    <i class="fa-regular fa-bookmark"></i>
+                    <span>Watchlist</span>
                     <span class="badge-pill" id="watchlist-count">0</span>
                 </button>
             </nav>
 
             <div class="header-stats">
-                <span class="stat-pill"><i class="fa-solid fa-cube"></i> <span id="header-vocab-size">5,000</span> Terms</span>
+                <div class="live-pill">
+                    <span class="live-dot"></span>
+                    <span class="live-label"><span id="header-vocab-size">5,000</span> Vector Terms</span>
+                </div>
             </div>
         </div>
     </header>
 
-    <!-- Main Content Container -->
+    <!-- Main Workspace -->
     <main class="main-content">
 
         <!-- TAB 1: RECOMMEND BY MOVIE -->
         <section class="tab-pane active" id="tab-recommend">
             <!-- Hero / Search Section -->
             <div class="hero-section">
-                <div class="hero-badge">
-                    <i class="fa-solid fa-sparkles"></i> Content-Based Filtering & Cosine Similarity
-                </div>
-                <h1 class="hero-title">Discover Similar Films Powered by <span class="gradient-text">TF-IDF Vectors</span></h1>
+                <div class="hero-kicker">Content-Based Affinity Engine</div>
+                <h1 class="hero-title">Discover Cinema by Narrative DNA</h1>
                 <p class="hero-subtitle">
-                    Select a movie to decompose its narrative synopsis, genres, director, and keywords into high-dimensional TF-IDF vectors and find mathematically closest titles.
+                    Select a film to analyze its narrative synopsis, directorial style, ensemble cast, and motifs across a 5,000-dimensional term frequency space.
                 </p>
 
-                <!-- Search & Quick Selection Area -->
+                <!-- Search & Autocomplete Area -->
                 <div class="search-box-wrapper">
                     <div class="search-input-group">
                         <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                        <input type="text" id="movie-search-input" placeholder="Type a movie title (e.g. Inception, Interstellar, The Dark Knight, Dune)..." autocomplete="off">
-                        <button class="clear-btn" id="btn-clear-search" style="display:none;"><i class="fa-solid fa-xmark"></i></button>
+                        <input type="text" id="movie-search-input" placeholder="Search by title (e.g. Inception, Interstellar, Dune, Parasite, Vikram)..." autocomplete="off" spellcheck="false">
+                        <button class="clear-btn" id="btn-clear-search" style="display:none;" aria-label="Clear Search">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
                     </div>
 
-                    <!-- Autocomplete Dropdown Menu -->
+                    <!-- Autocomplete Dropdown -->
                     <div class="autocomplete-dropdown" id="autocomplete-results"></div>
                 </div>
 
                 <!-- Quick Pick Suggestions -->
                 <div class="quick-picks-container">
-                    <span class="quick-picks-label"><i class="fa-solid fa-fire"></i> Popular Picks:</span>
+                    <span class="quick-picks-label">Curated Selections:</span>
                     <div class="quick-pick-chips" id="quick-pick-chips">
-                        <button class="chip" data-id="184"><i class="fa-solid fa-fire"></i> Vikram</button>
-                        <button class="chip" data-id="185"><i class="fa-solid fa-skull"></i> Leo</button>
-                        <button class="chip" data-id="188"><i class="fa-solid fa-crown"></i> Jailer</button>
-                        <button class="chip" data-id="202"><i class="fa-solid fa-shield"></i> RRR</button>
-                        <button class="chip" data-id="189"><i class="fa-solid fa-robot"></i> Enthiran (Robot)</button>
-                        <button class="chip" data-id="146"><i class="fa-solid fa-hand-fist"></i> Real Steel</button>
-                        <button class="chip" data-id="147"><i class="fa-solid fa-car"></i> Transformers</button>
                         <button class="chip" data-id="1">Inception</button>
                         <button class="chip" data-id="2">Interstellar</button>
                         <button class="chip" data-id="3">The Dark Knight</button>
                         <button class="chip" data-id="7">Dune</button>
                         <button class="chip" data-id="50">Parasite</button>
+                        <button class="chip" data-id="184">Vikram</button>
+                        <button class="chip" data-id="185">Leo</button>
+                        <button class="chip" data-id="188">Jailer</button>
+                        <button class="chip" data-id="202">RRR</button>
+                        <button class="chip" data-id="189">Enthiran</button>
+                        <button class="chip" data-id="146">Real Steel</button>
+                        <button class="chip" data-id="147">Transformers</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Filters Bar -->
-            <div class="filters-container glass-card">
+            <!-- Filter Controls Bar -->
+            <div class="filters-container">
                 <div class="filter-group">
-                    <label for="filter-genre"><i class="fa-solid fa-tag"></i> Genre Filter</label>
+                    <label for="filter-genre">Genre Filter</label>
                     <select id="filter-genre" class="select-input">
                         <option value="All">All Genres</option>
                     </select>
                 </div>
                 <div class="filter-group">
-                    <label for="filter-rating"><i class="fa-solid fa-star"></i> Min Rating: <span id="rating-val-display">7.0</span></label>
+                    <label for="filter-rating">Min IMDb Rating: <span class="rating-display-val" id="rating-val-display">7.0</span></label>
                     <input type="range" id="filter-rating" min="0" max="9.5" step="0.5" value="0.0">
                 </div>
                 <div class="filter-group">
-                    <label for="filter-top-n"><i class="fa-solid fa-list-ol"></i> Show Top</label>
+                    <label for="filter-top-n">Results Count</label>
                     <select id="filter-top-n" class="select-input">
-                        <option value="4">4 Movies</option>
-                        <option value="8" selected>8 Movies</option>
-                        <option value="12">12 Movies</option>
+                        <option value="4">4 Recommendations</option>
+                        <option value="8" selected>8 Recommendations</option>
+                        <option value="12">12 Recommendations</option>
                     </select>
                 </div>
-                <button class="btn-primary" id="btn-trigger-recommend">
-                    <i class="fa-solid fa-rotate"></i> Refresh Recommendations
-                </button>
+                <div class="filter-action">
+                    <button class="btn-primary" id="btn-trigger-recommend">
+                        <i class="fa-solid fa-sliders"></i> Apply Filters
+                    </button>
+                </div>
             </div>
 
-            <!-- Current Source Movie Showcase -->
-            <div class="source-movie-banner glass-card" id="source-movie-card">
+            <!-- Active Source Movie Showcase -->
+            <div class="source-movie-banner" id="source-movie-card">
                 <div class="source-poster-wrap">
                     <img id="src-poster" src="" alt="Selected Movie Poster" class="source-poster">
                 </div>
                 <div class="source-details">
                     <div class="source-meta-row">
                         <span class="source-year" id="src-year">2010</span>
+                        <span class="meta-dot"></span>
                         <span class="source-rating"><i class="fa-solid fa-star"></i> <span id="src-rating">8.8</span></span>
-                        <span class="source-runtime"><i class="fa-regular fa-clock"></i> <span id="src-runtime">148</span>m</span>
-                        <span class="source-director"><i class="fa-solid fa-clapperboard"></i> <span id="src-director">Christopher Nolan</span></span>
+                        <span class="meta-dot"></span>
+                        <span class="source-runtime"><i class="fa-regular fa-clock"></i> <span id="src-runtime">148</span> min</span>
+                        <span class="meta-dot"></span>
+                        <span class="source-director"><i class="fa-solid fa-bullhorn"></i> <span id="src-director">Christopher Nolan</span></span>
                     </div>
                     <h2 class="source-title" id="src-title">Inception</h2>
                     <div class="genre-pill-list" id="src-genres"></div>
                     <p class="source-overview" id="src-overview">Overview loading...</p>
 
                     <div class="source-tfidf-weights">
-                        <span class="tfidf-weights-title"><i class="fa-solid fa-fingerprint"></i> Top TF-IDF Terms for this Film:</span>
+                        <span class="tfidf-weights-title">Salient Thematic Weights (TF-IDF):</span>
                         <div class="tfidf-tags-list" id="src-tfidf-terms"></div>
                     </div>
                 </div>
@@ -157,12 +168,12 @@
             <div class="recommendations-section">
                 <div class="section-header">
                     <div>
-                        <h2 class="section-title"><i class="fa-solid fa-sparkles"></i> Top Similar Movies</h2>
-                        <p class="section-subtitle">Ranked by Cosine Similarity on high-dimensional TF-IDF vectors</p>
+                        <h2 class="section-title">Similar Recommended Films</h2>
+                        <p class="section-subtitle">Ranked by cosine affinity across combined metadata vectors</p>
                     </div>
                     <div class="similarity-legend">
-                        <span class="legend-item"><span class="legend-dot high"></span> High Affinity (&gt;5%)</span>
-                        <span class="legend-item"><span class="legend-dot med"></span> Thematic Match</span>
+                        <span class="legend-pill high-match"><span class="legend-dot"></span> High Affinity (&gt;5%)</span>
+                        <span class="legend-pill"><span class="legend-dot subtle"></span> Thematic Parallel</span>
                     </div>
                 </div>
 
@@ -173,31 +184,31 @@
             </div>
         </section>
 
-        <!-- TAB 2: AI STORY / PROMPT SEARCH -->
+        <!-- TAB 2: CURATE BY MOOD / PROMPT SEARCH -->
         <section class="tab-pane" id="tab-prompt">
             <div class="hero-section">
-                <div class="hero-badge">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i> Free-Text Vector Query
-                </div>
-                <h2 class="hero-title">Find Movies by <span class="gradient-text">Story Prompt or Mood</span></h2>
+                <div class="hero-kicker">Free-Text Vector Query</div>
+                <h2 class="hero-title">Curate by Premise, Mood, or Motif</h2>
                 <p class="hero-subtitle">
-                    Type any plot premise, vibe, or detailed scene in natural English. Our engine transforms your query into a TF-IDF vector and calculates Cosine Similarity against the movie corpus in real-time.
+                    Articulate any premise, atmosphere, or specific scene description in natural prose. The vectorizer maps your query into the feature space and returns the closest geometric matches.
                 </p>
 
-                <div class="prompt-input-card glass-card">
-                    <textarea id="prompt-input" rows="4" placeholder="Describe the kind of movie you want to watch (e.g., 'a mind-bending sci-fi where characters travel across black holes and time dilation to save humanity')..."></textarea>
+                <div class="prompt-input-card">
+                    <div class="prompt-textarea-wrap">
+                        <textarea id="prompt-input" rows="4" placeholder="Describe the atmosphere, premise, or scenario you are looking for (e.g. 'A melancholic space exploration mission involving relativistic time dilation and a father daughter bond across spacetime')..."></textarea>
+                    </div>
 
                     <div class="prompt-controls">
                         <div class="prompt-presets">
-                            <span class="presets-label">Need ideas? Try:</span>
-                            <button class="preset-btn" data-text="undercover special ops black ops drug cartel mass action gun fight">LCU / Cartel Thriller</button>
+                            <span class="presets-label">Exploratory Archetypes:</span>
+                            <button class="preset-btn" data-text="undercover special ops black ops drug cartel mass action gun fight">Cartel Undercover Thriller</button>
                             <button class="preset-btn" data-text="giant robot fighting mecha and boxing with artificial intelligence">Mecha & Robot Boxing</button>
                             <button class="preset-btn" data-text="chola empire historical war dynasty rebellion and kingdom conspiracy">Historical Dynasty Epic</button>
-                            <button class="preset-btn" data-text="mind bending space exploration with wormhole black hole and relativity">Space Odyssey</button>
-                            <button class="preset-btn" data-text="school reunion childhood nostalgic love unfulfilled romance">Nostalgic Romance (96)</button>
+                            <button class="preset-btn" data-text="mind bending space exploration with wormhole black hole and relativity">Cosmic Relativistic Odyssey</button>
+                            <button class="preset-btn" data-text="school reunion childhood nostalgic love unfulfilled romance">Bittersweet Nostalgic Romance</button>
                         </div>
                         <button class="btn-primary" id="btn-search-prompt">
-                            <i class="fa-solid fa-bolt"></i> Vectorize & Recommend
+                            <i class="fa-solid fa-arrow-right"></i> Search Vector Space
                         </button>
                     </div>
                 </div>
@@ -207,14 +218,14 @@
             <div class="recommendations-section">
                 <div class="section-header">
                     <div>
-                        <h3 class="section-title"><i class="fa-solid fa-list-check"></i> Best Matching Films</h3>
-                        <p class="section-subtitle" id="prompt-query-display">Enter a prompt above to discover matches</p>
+                        <h3 class="section-title">Query Vector Alignments</h3>
+                        <p class="section-subtitle" id="prompt-query-display">Enter a prompt above or pick an archetype to discover films</p>
                     </div>
                 </div>
                 <div class="movies-grid" id="prompt-results-grid">
                     <div class="empty-state">
                         <i class="fa-solid fa-compass empty-icon"></i>
-                        <p>Type a story prompt above or click one of the preset prompts to find matching movies!</p>
+                        <p>Write an atmospheric prompt above or select an archetype to view closest matching films.</p>
                     </div>
                 </div>
             </div>
@@ -223,56 +234,61 @@
         <!-- TAB 3: COMPARE 2 MOVIES -->
         <section class="tab-pane" id="tab-compare">
             <div class="hero-section">
-                <div class="hero-badge">
-                    <i class="fa-solid fa-calculator"></i> Mathematical Explainability
-                </div>
-                <h2 class="hero-title">Compare Any Two Movies <span class="gradient-text">Side by Side</span></h2>
+                <div class="hero-kicker">Comparative Decomposition</div>
+                <h2 class="hero-title">Double Feature Comparison</h2>
                 <p class="hero-subtitle">
-                    Select two movies to visualize their pairwise Cosine Similarity and inspect the exact overlapping TF-IDF terms responsible for their connection.
+                    Select any two titles to inspect their pairwise cosine distance and view the exact mathematical term-by-term dot product contributions.
                 </p>
             </div>
 
             <div class="compare-selectors-grid">
-                <div class="compare-card glass-card">
-                    <h3>Movie A</h3>
+                <div class="compare-card">
+                    <div class="compare-card-header">
+                        <span class="compare-label">Primary Film</span>
+                    </div>
                     <select id="compare-select-a" class="select-input"></select>
                     <div class="compare-preview" id="compare-preview-a"></div>
                 </div>
 
-                <div class="compare-center">
-                    <button class="btn-primary" id="btn-run-compare">
-                        <i class="fa-solid fa-bolt"></i> Compute Similarity
+                <div class="compare-divider">
+                    <button class="btn-primary compare-btn" id="btn-run-compare">
+                        <i class="fa-solid fa-code-compare"></i> Compare Vectors
                     </button>
                 </div>
 
-                <div class="compare-card glass-card">
-                    <h3>Movie B</h3>
+                <div class="compare-card">
+                    <div class="compare-card-header">
+                        <span class="compare-label">Secondary Film</span>
+                    </div>
                     <select id="compare-select-b" class="select-input"></select>
                     <div class="compare-preview" id="compare-preview-b"></div>
                 </div>
             </div>
 
-            <div class="compare-result-card glass-card" id="compare-result-container" style="display: none;">
+            <div class="compare-result-card" id="compare-result-container" style="display: none;">
                 <div class="compare-score-header">
-                    <div class="score-circle">
+                    <div class="score-display-box">
                         <span class="score-val" id="compare-score-percent">0%</span>
-                        <span class="score-sub">Similarity</span>
+                        <span class="score-sub">Cosine Affinity</span>
                     </div>
                     <div class="score-details">
-                        <h3 id="compare-title-pair">Movie A vs Movie B</h3>
-                        <p>Cosine Similarity: <strong id="compare-raw-cosine">0.0000</strong></p>
-                        <p class="formula-note">$\cos(\theta) = \frac{\mathbf{v}_A \cdot \mathbf{v}_B}{\|\mathbf{v}_A\| \|\mathbf{v}_B\|}$</p>
+                        <h3 id="compare-title-pair">Film A vs Film B</h3>
+                        <div class="score-meta-row">
+                            <span>Raw Vector Metric: <strong id="compare-raw-cosine">0.0000</strong></span>
+                            <span class="meta-dot"></span>
+                            <span class="formula-note">Normalized Dot Product: $\sum (u_i \times v_i)$</span>
+                        </div>
                     </div>
                 </div>
 
-                <h4 class="table-title"><i class="fa-solid fa-table-list"></i> Overlapping TF-IDF Terms Breakdown</h4>
+                <h4 class="table-title">Overlapping Feature Attribution</h4>
                 <div class="terms-table-container">
                     <table class="terms-table">
                         <thead>
                             <tr>
-                                <th>Term / N-Gram</th>
-                                <th>Contribution Score</th>
-                                <th>Visual Impact</th>
+                                <th>Feature Token / N-Gram</th>
+                                <th>Contribution Weight</th>
+                                <th>Attribution Distribution</th>
                             </tr>
                         </thead>
                         <tbody id="compare-terms-tbody"></tbody>
@@ -281,77 +297,77 @@
             </div>
         </section>
 
-        <!-- TAB 4: TF-IDF ALGORITHM VISUALIZER & EXPLAINER -->
+        <!-- TAB 4: CORPUS ANALYTICS -->
         <section class="tab-pane" id="tab-visualizer">
             <div class="hero-section">
-                <div class="hero-badge">
-                    <i class="fa-solid fa-graduation-cap"></i> Machine Learning Theory
-                </div>
-                <h2 class="hero-title">How the <span class="gradient-text">TF-IDF Recommender</span> Works</h2>
+                <div class="hero-kicker">Corpus Architecture</div>
+                <h2 class="hero-title">Vectorization Model Diagnostics</h2>
                 <p class="hero-subtitle">
-                    A comprehensive look at the mathematical architecture powering this recommendation system.
+                    Overview of the vocabulary distribution, inverse document frequencies, and dimensional parameters configured in the model.
                 </p>
             </div>
 
             <!-- Mathematical Architecture Cards -->
             <div class="math-cards-grid">
-                <div class="math-card glass-card">
-                    <div class="math-card-icon"><i class="fa-solid fa-calculator"></i></div>
-                    <h3>1. Term Frequency (TF)</h3>
-                    <p>Quantifies how frequently a term $t$ appears in movie document $d$. We apply <strong>sublinear scaling</strong> to dampen the dominance of repeated words:</p>
+                <div class="math-card">
+                    <div class="math-card-num">01</div>
+                    <h3>Sublinear Term Frequency</h3>
+                    <p>Applies logarithmic scaling to prevent high-repetition words from overshadowing subtle thematic tokens:</p>
                     <div class="formula-box">
-                        $$\text{Sublinear TF}(t, d) = 1 + \log(\text{count}(t, d))$$
+                        $$\text{TF}(t, d) = 1 + \log(\text{count}(t, d))$$
                     </div>
                 </div>
 
-                <div class="math-card glass-card">
-                    <div class="math-card-icon"><i class="fa-solid fa-filter"></i></div>
-                    <h3>2. Inverse Document Frequency (IDF)</h3>
-                    <p>Measures how rare or distinctive a term is across all $N$ movies. Frequent generic words get lower weights, while distinctive plot terms get higher weights:</p>
+                <div class="math-card">
+                    <div class="math-card-num">02</div>
+                    <h3>Inverse Document Frequency</h3>
+                    <p>Dampens ubiquitous terms while boosting rare, highly discriminative narrative keywords across $N$ films:</p>
                     <div class="formula-box">
                         $$\text{IDF}(t) = \log\left(\frac{1 + N}{1 + \text{DF}(t)}\right) + 1$$
                     </div>
                 </div>
 
-                <div class="math-card glass-card">
-                    <div class="math-card-icon"><i class="fa-solid fa-compass"></i></div>
-                    <h3>3. Cosine Similarity</h3>
-                    <p>Calculates the cosine of the angle between two $L_2$-normalized TF-IDF vectors in $5000$-dimensional feature space:</p>
+                <div class="math-card">
+                    <div class="math-card-num">03</div>
+                    <h3>L2-Normalized Cosine Metric</h3>
+                    <p>Calculates the angular divergence between unit-length vectors in high-dimensional feature space:</p>
                     <div class="formula-box">
-                        $$\text{Cosine}(\mathbf{u}, \mathbf{v}) = \frac{\mathbf{u} \cdot \mathbf{v}}{\|\mathbf{u}\|_2 \|\mathbf{v}\|_2} \in [0, 1]$$
+                        $$\cos(\theta) = \frac{\mathbf{u} \cdot \mathbf{v}}{\|\mathbf{u}\|_2 \|\mathbf{v}\|_2}$$
                     </div>
                 </div>
             </div>
 
-            <!-- Corpus Insights -->
-            <div class="corpus-stats-container glass-card">
-                <h3><i class="fa-solid fa-chart-pie"></i> Dataset Vocabulary Statistics</h3>
+            <!-- Corpus Statistics -->
+            <div class="corpus-stats-container">
+                <div class="stats-header">
+                    <h3>Corpus Parameters</h3>
+                </div>
                 <div class="stats-metric-row">
                     <div class="metric-box">
-                        <span class="metric-val" id="vis-total-movies">100</span>
-                        <span class="metric-lbl">Total Movies</span>
+                        <span class="metric-val" id="vis-total-movies">217</span>
+                        <span class="metric-lbl">Indexed Titles</span>
                     </div>
                     <div class="metric-box">
                         <span class="metric-val" id="vis-vocab-size">5,000</span>
-                        <span class="metric-lbl">Vocabulary Features</span>
+                        <span class="metric-lbl">Vocabulary Dimensionality</span>
                     </div>
                     <div class="metric-box">
                         <span class="metric-val">1 - 2</span>
-                        <span class="metric-lbl">N-Gram Range</span>
+                        <span class="metric-lbl">Token N-Grams</span>
                     </div>
                     <div class="metric-box">
                         <span class="metric-val">L2</span>
-                        <span class="metric-lbl">Vector Norm</span>
+                        <span class="metric-lbl">Normalization Norm</span>
                     </div>
                 </div>
 
                 <div class="rare-vs-common-grid">
-                    <div>
-                        <h4><i class="fa-solid fa-gem"></i> Most Distinctive Keywords (High IDF)</h4>
+                    <div class="cloud-panel">
+                        <h4>High-Specificity Features (High IDF)</h4>
                         <div class="terms-cloud" id="cloud-high-idf"></div>
                     </div>
-                    <div>
-                        <h4><i class="fa-solid fa-layer-group"></i> Most Ubiquitous Thematic Terms (Low IDF)</h4>
+                    <div class="cloud-panel">
+                        <h4>Broad Thematic Descriptors (Low IDF)</h4>
                         <div class="terms-cloud" id="cloud-low-idf"></div>
                     </div>
                 </div>
@@ -361,40 +377,43 @@
         <!-- TAB 5: WATCHLIST -->
         <section class="tab-pane" id="tab-watchlist">
             <div class="hero-section">
-                <div class="hero-badge">
-                    <i class="fa-solid fa-bookmark"></i> Saved Movies
-                </div>
-                <h2 class="hero-title">Your Personal <span class="gradient-text">Movie Watchlist</span></h2>
+                <div class="hero-kicker">Saved Catalog</div>
+                <h2 class="hero-title">Personal Watchlist</h2>
                 <p class="hero-subtitle">
-                    Movies you've bookmarked for later. Saved locally in your browser.
+                    Films bookmarked during discovery sessions, persisted directly in your local browser state.
                 </p>
-                <button class="btn-secondary" id="btn-clear-watchlist" style="display:none;">
-                    <i class="fa-solid fa-trash"></i> Clear Watchlist
-                </button>
+                <div class="watchlist-actions">
+                    <button class="btn-secondary" id="btn-clear-watchlist" style="display:none;">
+                        <i class="fa-solid fa-trash-can"></i> Clear All Saved
+                    </button>
+                </div>
             </div>
 
             <div class="movies-grid" id="watchlist-grid">
                 <div class="empty-state">
                     <i class="fa-regular fa-bookmark empty-icon"></i>
-                    <p>Your watchlist is empty! Click the bookmark icon on any movie to save it here.</p>
+                    <p>Your watchlist is currently empty. Click the bookmark icon on any film card to save it here.</p>
                 </div>
             </div>
         </section>
     </main>
 
-    <!-- Modal: Movie Details & Deep TF-IDF Inspection -->
-    <div class="modal-backdrop" id="movie-modal">
-        <div class="modal-card glass-card">
-            <button class="modal-close-btn" id="btn-close-modal"><i class="fa-solid fa-xmark"></i></button>
+    <!-- Modal: Film Detail & Full Feature Inspection -->
+    <div class="modal-backdrop" id="movie-modal" role="dialog" aria-modal="true">
+        <div class="modal-card">
+            <button class="modal-close-btn" id="btn-close-modal" aria-label="Close modal">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
             <div class="modal-content-grid" id="modal-content">
-                <!-- Dynamically populated -->
+                <!-- Dynamically populated by app.js -->
             </div>
         </div>
     </div>
 
-    <!-- Toast Notification -->
-    <div class="toast-notification" id="toast-notify">
-        <i class="fa-solid fa-circle-check"></i> <span id="toast-text">Notification</span>
+    <!-- Notification Toast -->
+    <div class="toast-notification" id="toast-notify" role="status">
+        <i class="fa-solid fa-circle-check"></i>
+        <span id="toast-text">Notification</span>
     </div>
 
     <!-- Application Script -->
