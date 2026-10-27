@@ -1083,6 +1083,38 @@ input[type="range"]::-webkit-slider-thumb:hover {
     margin-bottom: 1rem;
 }
 
+/* Similarity One-Line Reason Box */
+.similarity-reason-box {
+    margin: 0.25rem 0 0.85rem;
+    padding: 0.55rem 0.75rem;
+    background-color: #f0fdfa;
+    border: 1px solid rgba(15, 118, 110, 0.2);
+    border-left: 3px solid var(--accent-mint);
+    border-radius: var(--radius-xs);
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.similarity-reason-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--accent-mint);
+}
+
+.similarity-reason-text {
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: #0f172a;
+    margin: 0;
+}
+
 /* "How Similarity Was Found" Visual Card Section */
 .how-found-box {
     margin: 0.85rem 0 1rem;

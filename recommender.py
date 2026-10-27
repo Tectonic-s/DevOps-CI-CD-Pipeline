@@ -145,15 +145,74 @@ class MovieRecommender:
                 })
         return shared_terms
 
+    def _generate_one_line_reason(self, source_row, target_row, shared_terms):
+        """Generates a concise, informative 1-line explanation of why target_row is similar to source_row."""
+        s_dir = str(source_row.get("director", "")).strip()
+        t_dir = str(target_row.get("director", "")).strip()
+        same_director = s_dir and t_dir and s_dir.lower() == t_dir.lower()
+
+        s_cast = [c.strip() for c in str(source_row.get("cast", "")).split(",") if c.strip()]
+        t_cast = [c.strip() for c in str(target_row.get("cast", "")).split(",") if c.strip()]
+        shared_actors = [a for a in s_cast if any(a.lower() == b.lower() for b in t_cast)]
+
+        s_genres = [g.strip() for g in str(source_row.get("genres", "")).split(",") if g.strip()]
+        t_genres = [g.strip() for g in str(target_row.get("genres", "")).split(",") if g.strip()]
+        common_genres = [g for g in s_genres if any(g.lower() == b.lower() for b in t_genres)]
+
+        dir_tokens = set((s_dir + " " + t_dir).lower().split())
+        actor_tokens = set((" ".join(shared_actors)).lower().split())
+
+        clean_terms = []
+        for item in shared_terms:
+            t_str = str(item.get("term", "")).replace("_", " ").strip()
+            words = t_str.lower().split()
+            if any(w in dir_tokens for w in words):
+                continue
+            if any(w in actor_tokens for w in words):
+                continue
+            if len(t_str) > 2 and t_str not in clean_terms:
+                clean_terms.append(t_str)
+
+        if same_director:
+            if clean_terms:
+                return f"Directed by {s_dir} with signature motifs in {clean_terms[0]}."
+            return f"Also directed by {s_dir} with a shared cinematic visual style."
+
+        if shared_actors:
+            actor = shared_actors[0]
+            if clean_terms:
+                return f"Stars {actor} with key themes in {clean_terms[0]}."
+            return f"Stars {actor} in a high-stakes {common_genres[0] if common_genres else 'narrative'} role."
+
+        if clean_terms and common_genres:
+            return f"Shares {common_genres[0]} themes focusing on {clean_terms[0]}."
+
+        if clean_terms:
+            return f"Narrative themes centered around {clean_terms[0]}."
+
+        if common_genres:
+            return f"Matches key {' & '.join(common_genres[:2])} story arcs and pacing."
+
+        return "Shares narrative themes, tone, and character dynamics."
+
+    def _generate_prompt_reason(self, text_prompt, target_row, matched_terms):
+        genres = [g.strip() for g in str(target_row.get("genres", "")).split(",") if g.strip()]
+        genre_str = f"{genres[0]} " if genres else ""
+        if matched_terms:
+            clean_terms = [t.replace("_", " ").strip() for t in matched_terms[:2] if t.strip()]
+            return f"Matches your search for \"{text_prompt}\" via {genre_str}themes in {', '.join(clean_terms)}."
+        return f"Matches your query tone across {genre_str}storytelling."
+
     def recommend_by_movie_id(self, movie_id, top_n=8, genre_filter=None, min_rating=0.0):
         """
         Returns top N recommendations for a specific movie ID using Cosine Similarity on TF-IDF.
-        Also includes explanation of shared keywords.
+        Also includes explanation of shared keywords and 1-line reason.
         """
         if movie_id not in self.indices:
             return []
 
         source_idx = self.indices[movie_id]
+        source_row = self.df.iloc[source_idx]
         sim_scores = list(enumerate(self.cosine_sim[source_idx]))
 
         # Sort by similarity score descending (excluding itself)
@@ -178,11 +237,13 @@ class MovieRecommender:
 
             # Explain recommendation
             shared_terms = self._explain_pair(source_idx, idx, top_n=4)
+            similarity_reason = self._generate_one_line_reason(source_row, row, shared_terms)
 
             movie_dict = row.to_dict()
             movie_dict["similarity_score"] = round(float(score), 4)
             movie_dict["similarity_percent"] = round(float(score) * 100, 1)
             movie_dict["shared_terms"] = shared_terms
+            movie_dict["similarity_reason"] = similarity_reason
             recommendations.append(movie_dict)
 
             if len(recommendations) >= top_n:
@@ -243,6 +304,8 @@ class MovieRecommender:
             movie_dict["similarity_score"] = round(score, 4)
             movie_dict["similarity_percent"] = round(score * 100, 1)
             movie_dict["shared_terms"] = shared_terms
+            movie_dict["matched_terms"] = [t["term"] for t in shared_terms]
+            movie_dict["similarity_reason"] = self._generate_prompt_reason(text_prompt, row, [t["term"] for t in shared_terms])
             recommendations.append(movie_dict)
 
             if len(recommendations) >= top_n:

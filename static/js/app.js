@@ -252,6 +252,11 @@ document.addEventListener("DOMContentLoaded", () => {
             if (data.status === "success") {
                 state.currentRecommendations = data.recommendations;
                 renderMovieCards(elements.recommendationsGrid, data.recommendations);
+
+                // Smoothly scroll to results so user sees similar movies below search
+                if (elements.sourceMovieCard && elements.sourceMovieCard.style.display !== "none") {
+                    elements.sourceMovieCard.scrollIntoView({ behavior: "smooth", block: "start" });
+                }
             } else {
                 elements.recommendationsGrid.innerHTML = `
                     <div class="empty-state">
@@ -316,6 +321,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 state.currentRecommendations = data.recommendations;
                 renderMovieCards(elements.recommendationsGrid, data.recommendations);
                 showToast(`Found ${data.recommendations.length} matching films`);
+
+                // Smoothly scroll to recommendations
+                if (elements.recommendationsSection) {
+                    elements.recommendationsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+                }
             } else {
                 elements.recommendationsGrid.innerHTML = `
                     <div class="empty-state">
@@ -338,6 +348,25 @@ document.addEventListener("DOMContentLoaded", () => {
     // ==========================================
     // RENDER MOVIE CARDS & VISUAL SIMILARITY
     // ==========================================
+
+    function getOneLineReason(movie) {
+        if (movie.similarity_reason) return movie.similarity_reason;
+        if (state.currentMovieData) {
+            const src = state.currentMovieData;
+            if (src.director && movie.director && src.director.toLowerCase() === movie.director.toLowerCase()) {
+                return `Directed by ${src.director} with signature cinematic motifs.`;
+            }
+            if (movie.shared_terms && movie.shared_terms.length > 0) {
+                const term = movie.shared_terms[0].term.replace(/_/g, ' ');
+                return `Shares core themes in ${term} and character dynamics.`;
+            }
+        }
+        if (movie.genres) {
+            const topGenre = movie.genres.split(",")[0].trim();
+            return `Matches high-stakes ${topGenre} narrative pacing and tone.`;
+        }
+        return "Shares narrative themes, tone, and character dynamics.";
+    }
 
     function renderMovieCards(container, movies) {
         if (!movies || movies.length === 0) {
@@ -403,6 +432,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 `;
             }
 
+            const oneLineReason = getOneLineReason(movie);
+
             return `
                 <div class="movie-card" data-id="${movie.id}">
                     <div class="movie-card-poster-wrap">
@@ -424,6 +455,13 @@ document.addEventListener("DOMContentLoaded", () => {
                         <div class="movie-card-genres">
                             ${genres.map(g => `<span class="mini-genre-pill">${g.trim()}</span>`).join("")}
                         </div>
+
+                        <!-- One-line similarity reason -->
+                        <div class="similarity-reason-box">
+                            <span class="similarity-reason-tag"><i class="fa-solid fa-sparkles"></i> Why similar:</span>
+                            <p class="similarity-reason-text">${oneLineReason}</p>
+                        </div>
+
                         <p class="movie-card-overview">${movie.overview || ''}</p>
 
                         ${visualHowFoundHtml}
