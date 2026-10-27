@@ -24,9 +24,16 @@ print("Engine ready.")
 
 
 @app.route("/")
+@app.route("/api/index")
 def index():
     """Serves the main application page."""
     return render_template("index.html")
+
+
+@app.route("/api/ping", methods=["GET"])
+def ping():
+    """Fast lightweight connectivity check."""
+    return jsonify({"status": "ok", "message": "CineMatch AI API is live"})
 
 
 @app.route("/api/movies", methods=["GET"])
