@@ -163,13 +163,13 @@ document.addEventListener("DOMContentLoaded", () => {
     // ==========================================
 
     function handleSearchInput(rawQuery) {
-        const query = (rawQuery || elements.searchInput.value).trim();
+        const query = (rawQuery || (elements.searchInput ? elements.searchInput.value : "")).trim();
         if (!query) {
-            showToast("Please enter a title, actor, or story theme to search");
+            showToast("Please select a film to demo the TF-IDF animation");
             return;
         }
 
-        elements.autocompleteResults.classList.remove("active");
+        if (elements.autocompleteResults) elements.autocompleteResults.classList.remove("active");
 
         const lower = query.toLowerCase();
         const found = state.allMovies.find(m => m.title.toLowerCase() === lower) ||
@@ -180,7 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
             state.activeSearchMode = "movie";
             updateQuickPickActive(found.id);
             loadSourceMovieAndRecommend(found.id);
-            elements.searchInput.value = found.title;
+            if (elements.searchInput) elements.searchInput.value = found.title;
         } else {
             // Free-text plot search
             state.activeSearchMode = "prompt";
@@ -693,52 +693,64 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ==========================================
-    // AUTOCOMPLETE DROPDOWN
+    // AUTOCOMPLETE DROPDOWN & SEARCH (Optional)
     // ==========================================
 
-    elements.searchInput.addEventListener("input", (e) => {
-        const query = e.target.value.trim().toLowerCase();
-        if (query.length > 0) {
-            elements.btnClearSearch.style.display = "block";
-        } else {
-            elements.btnClearSearch.style.display = "none";
-        }
+    if (elements.searchInput) {
+        elements.searchInput.addEventListener("input", (e) => {
+            const query = e.target.value.trim().toLowerCase();
+            if (elements.btnClearSearch) {
+                elements.btnClearSearch.style.display = query.length > 0 ? "block" : "none";
+            }
 
-        if (query.length < 2) {
-            elements.autocompleteResults.classList.remove("active");
-            return;
-        }
+            if (!elements.autocompleteResults) return;
 
-        const matches = state.allMovies
-            .filter(m => m.title.toLowerCase().includes(query) || (m.director && m.director.toLowerCase().includes(query)))
-            .slice(0, 7);
+            if (query.length < 2) {
+                elements.autocompleteResults.classList.remove("active");
+                return;
+            }
 
-        renderAutocompleteDropdown(matches);
-    });
+            const matches = state.allMovies
+                .filter(m => m.title.toLowerCase().includes(query) || (m.director && m.director.toLowerCase().includes(query)))
+                .slice(0, 7);
 
-    elements.searchInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-            e.preventDefault();
+            renderAutocompleteDropdown(matches);
+        });
+
+        elements.searchInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                handleSearchInput();
+            }
+        });
+    }
+
+    if (elements.btnSearchSubmit) {
+        elements.btnSearchSubmit.addEventListener("click", () => {
             handleSearchInput();
-        }
-    });
+        });
+    }
 
-    elements.btnSearchSubmit.addEventListener("click", () => {
-        handleSearchInput();
-    });
-
-    elements.btnClearSearch.addEventListener("click", () => {
-        elements.searchInput.value = "";
-        elements.btnClearSearch.style.display = "none";
-        elements.autocompleteResults.classList.remove("active");
-        elements.searchInput.focus();
-    });
+    if (elements.btnClearSearch) {
+        elements.btnClearSearch.addEventListener("click", () => {
+            if (elements.searchInput) {
+                elements.searchInput.value = "";
+                elements.searchInput.focus();
+            }
+            elements.btnClearSearch.style.display = "none";
+            if (elements.autocompleteResults) {
+                elements.autocompleteResults.classList.remove("active");
+            }
+        });
+    }
 
     function renderAutocompleteDropdown(matches) {
+        if (!elements.autocompleteResults) return;
+
         if (matches.length === 0) {
             elements.autocompleteResults.innerHTML = `
                 <div class="autocomplete-item empty">
-                    <span>No exact title match. Press <kbd>Enter</kbd> to execute description search</span>
+                    <span>No exact title match.</span>
                 </div>
             `;
             elements.autocompleteResults.classList.add("active");
@@ -762,7 +774,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const id = parseInt(item.dataset.id);
                 const sel = state.allMovies.find(m => m.id === id);
                 if (sel) {
-                    elements.searchInput.value = sel.title;
+                    if (elements.searchInput) elements.searchInput.value = sel.title;
                     updateQuickPickActive(id);
                     loadSourceMovieAndRecommend(id);
                 }
@@ -772,12 +784,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     document.addEventListener("click", (e) => {
-        if (!e.target.closest(".search-box-wrapper")) {
+        if (elements.autocompleteResults && !e.target.closest(".search-box-wrapper")) {
             elements.autocompleteResults.classList.remove("active");
         }
     });
 
-    // Quick Pick Chips
+    // Quick Pick Chips Demo Selector
     if (elements.quickPickChips) {
         elements.quickPickChips.querySelectorAll(".chip").forEach(chip => {
             chip.addEventListener("click", () => {
@@ -785,7 +797,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 updateQuickPickActive(id);
                 loadSourceMovieAndRecommend(id);
                 const movie = state.allMovies.find(m => m.id === id);
-                if (movie) elements.searchInput.value = movie.title;
+                if (movie && elements.searchInput) elements.searchInput.value = movie.title;
             });
         });
     }
@@ -1085,7 +1097,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (elements.brandLogoBtn) {
         elements.brandLogoBtn.addEventListener("click", () => {
             window.scrollTo({ top: 0, behavior: "smooth" });
-            elements.searchInput.focus();
+            if (elements.searchInput) elements.searchInput.focus();
         });
     }
 

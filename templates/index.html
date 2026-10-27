@@ -63,38 +63,26 @@
                 Search any movie to watch the description break apart into words, discard generic stopwords, extract high-value TF-IDF keywords, and find matching films through description word overlap.
             </p>
 
-            <!-- Search Bar Wrapper -->
-            <div class="search-box-wrapper">
-                <div class="search-input-group">
-                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                    <input type="text" id="movie-search-input" placeholder="Search a film title or idea (e.g. Inception, Real Steel, Transformers, Vikram)..." autocomplete="off" spellcheck="false">
-                    <button class="clear-btn" id="btn-clear-search" style="display:none;" aria-label="Clear Search">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                    <button class="btn-primary search-submit-btn" id="btn-search-submit">
-                        <i class="fa-solid fa-arrow-right"></i> Search & Animate
-                    </button>
+            <!-- Quick Pick Chips Demo Bar -->
+            <div class="quick-picks-container standalone-quickpicks">
+                <div class="quick-picks-header">
+                    <span class="quick-picks-label"><i class="fa-solid fa-film"></i> Click a Film to Demo TF-IDF Animation:</span>
                 </div>
-
-                <!-- Autocomplete Dropdown -->
-                <div class="autocomplete-dropdown" id="autocomplete-results"></div>
-            </div>
-
-            <!-- Quick Pick Chips -->
-            <div class="quick-picks-container">
-                <span class="quick-picks-label"><i class="fa-solid fa-bolt"></i> Click to Demo Film:</span>
                 <div class="quick-pick-chips" id="quick-pick-chips">
-                    <button class="chip active" data-id="1">Inception</button>
-                    <button class="chip" data-id="2">Interstellar</button>
-                    <button class="chip" data-id="146">Real Steel</button>
-                    <button class="chip" data-id="147">Transformers</button>
-                    <button class="chip" data-id="184">Vikram</button>
-                    <button class="chip" data-id="185">Leo</button>
-                    <button class="chip" data-id="3">The Dark Knight</button>
-                    <button class="chip" data-id="7">Dune</button>
-                    <button class="chip" data-id="50">Parasite</button>
-                    <button class="chip" data-id="189">Enthiran</button>
-                    <button class="chip" data-id="202">RRR</button>
+                    <button type="button" class="chip active" data-id="1"><i class="fa-solid fa-play"></i> Inception</button>
+                    <button type="button" class="chip" data-id="2"><i class="fa-solid fa-play"></i> Interstellar</button>
+                    <button type="button" class="chip" data-id="146"><i class="fa-solid fa-play"></i> Real Steel</button>
+                    <button type="button" class="chip" data-id="147"><i class="fa-solid fa-play"></i> Transformers</button>
+                    <button type="button" class="chip" data-id="184"><i class="fa-solid fa-play"></i> Vikram</button>
+                    <button type="button" class="chip" data-id="185"><i class="fa-solid fa-play"></i> Leo</button>
+                    <button type="button" class="chip" data-id="3"><i class="fa-solid fa-play"></i> The Matrix</button>
+                    <button type="button" class="chip" data-id="24"><i class="fa-solid fa-play"></i> The Dark Knight</button>
+                    <button type="button" class="chip" data-id="7"><i class="fa-solid fa-play"></i> Dune</button>
+                    <button type="button" class="chip" data-id="50"><i class="fa-solid fa-play"></i> Parasite</button>
+                    <button type="button" class="chip" data-id="189"><i class="fa-solid fa-play"></i> Enthiran</button>
+                    <button type="button" class="chip" data-id="202"><i class="fa-solid fa-play"></i> RRR</button>
+                    <button type="button" class="chip" data-id="19"><i class="fa-solid fa-play"></i> Avatar</button>
+                    <button type="button" class="chip" data-id="6"><i class="fa-solid fa-play"></i> Arrival</button>
                 </div>
             </div>
         </section>
