@@ -30,6 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
         watchlist: JSON.parse(localStorage.getItem("cinematch_watchlist") || "[]"),
         corpusStats: null,
         activeSearchMode: "movie", // "movie" or "prompt"
+        playbackSpeed: 0.25, // 0.25x slow-mo playback default
         animationTimeouts: []
     };
 
@@ -395,18 +396,25 @@ document.addEventListener("DOMContentLoaded", () => {
             (sourceMovie.top_keywords || []).map(k => k.term.toLowerCase().split(/\s+/)).flat()
         );
 
+        // Playback speed factor (0.25x = 4x slower)
+        const currentSpeed = state.playbackSpeed || 0.25;
+        const speedFactor = 1 / currentSpeed;
+
         // PHASE 1: Populate all word chips with stagger animation
-        elements.animPhaseStatus.innerHTML = `<i class="fa-solid fa-scissors text-mint"></i> Step 1: Breaking description into ${rawWords.length} individual word tokens...`;
+        elements.animPhaseStatus.innerHTML = `<i class="fa-solid fa-scissors text-mint"></i> Step 1: Breaking description into ${rawWords.length} individual word tokens (${currentSpeed}x speed)...`;
         
         elements.animTokensContainer.innerHTML = rawWords.map((word, i) => {
+            const tokenDelay = Math.round(i * 35 * speedFactor);
+            const animDuration = Math.round(300 * Math.min(speedFactor, 2.5));
             return `
-                <span class="anim-word-token" id="token-${i}" style="animation-delay: ${i * 35}ms;">
+                <span class="anim-word-token" id="token-${i}" style="animation-delay: ${tokenDelay}ms; animation-duration: ${animDuration}ms;">
                     <span class="token-word">${word}</span>
                 </span>
             `;
         }).join("");
 
-        // PHASE 2: Discard stopwords and highlight high TF-IDF words (at 900ms)
+        // PHASE 2: Discard stopwords and highlight high TF-IDF words (staggered in 0.25x)
+        const t1Delay = Math.round(950 * speedFactor);
         const t1 = setTimeout(() => {
             elements.pillStep1.className = "anim-step-pill completed";
             elements.connector1.className = "anim-step-connector active";
@@ -415,32 +423,37 @@ document.addEventListener("DOMContentLoaded", () => {
             elements.animPhaseStatus.innerHTML = `<i class="fa-solid fa-filter text-amber"></i> Step 2: Discarding generic stopwords & keeping high-value TF-IDF keywords...`;
 
             rawWords.forEach((word, i) => {
-                const el = document.getElementById(`token-${i}`);
-                if (!el) return;
+                const wordEvalDelay = Math.round(i * 20 * speedFactor);
+                const subTimer = setTimeout(() => {
+                    const el = document.getElementById(`token-${i}`);
+                    if (!el) return;
 
-                const lower = word.toLowerCase();
-                const isStopword = STOPWORDS.has(lower) || lower.length <= 2;
-                const isSalient = salientTermsSet.has(lower) || (!isStopword && lower.length > 4);
+                    const lower = word.toLowerCase();
+                    const isStopword = STOPWORDS.has(lower) || lower.length <= 2;
+                    const isSalient = salientTermsSet.has(lower) || (!isStopword && lower.length > 4);
 
-                if (isStopword) {
-                    el.classList.add("discarded");
-                    el.innerHTML = `
-                        <span class="token-word">${word}</span>
-                        <span class="token-status-tag"><i class="fa-solid fa-xmark"></i></span>
-                    `;
-                } else if (isSalient) {
-                    el.classList.add("retained");
-                    el.innerHTML = `
-                        <i class="fa-solid fa-sparkles"></i>
-                        <span class="token-word">${word}</span>
-                        <span class="token-status-tag">kept (TF-IDF)</span>
-                    `;
-                }
+                    if (isStopword) {
+                        el.classList.add("discarded");
+                        el.innerHTML = `
+                            <span class="token-word">${word}</span>
+                            <span class="token-status-tag"><i class="fa-solid fa-xmark"></i></span>
+                        `;
+                    } else if (isSalient) {
+                        el.classList.add("retained");
+                        el.innerHTML = `
+                            <i class="fa-solid fa-sparkles"></i>
+                            <span class="token-word">${word}</span>
+                            <span class="token-status-tag">kept (TF-IDF)</span>
+                        `;
+                    }
+                }, wordEvalDelay);
+                state.animationTimeouts.push(subTimer);
             });
-        }, 950);
+        }, t1Delay);
         state.animationTimeouts.push(t1);
 
-        // PHASE 3: Match candidate movies using overlapping words (at 1900ms)
+        // PHASE 3: Match candidate movies using overlapping words
+        const t2Delay = Math.round(2000 * speedFactor);
         const t2 = setTimeout(() => {
             elements.pillStep2.className = "anim-step-pill completed";
             elements.connector2.className = "anim-step-connector active";
@@ -466,9 +479,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
 
                 const matchedTags = sharedList.slice(0, 3).map(t => `<span class="match-highlight">${t}</span>`).join(" ");
+                const matchDelay = Math.round(idx * 250 * speedFactor);
 
                 return `
-                    <div class="anim-match-card" style="animation-delay: ${idx * 150}ms;">
+                    <div class="anim-match-card" style="animation-delay: ${matchDelay}ms;">
                         <img src="${movie.poster_url}" alt="${movie.title}" class="anim-match-thumb">
                         <div class="anim-match-info">
                             <div class="anim-match-title">${movie.title}</div>
@@ -481,14 +495,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 `;
             }).join("");
-        }, 1950);
+        }, t2Delay);
         state.animationTimeouts.push(t2);
 
-        // PHASE 4: Animation Complete (at 2800ms)
+        // PHASE 4: Animation Complete
+        const t3Delay = Math.round(3100 * speedFactor);
         const t3 = setTimeout(() => {
             elements.pillStep3.className = "anim-step-pill completed";
             elements.animPhaseStatus.innerHTML = `<i class="fa-solid fa-circle-check text-emerald"></i> Done! Found ${recommendations.length} movies matching "${sourceMovie.title}" via description keywords.`;
-        }, 2850);
+        }, t3Delay);
         state.animationTimeouts.push(t3);
     }
 
@@ -529,6 +544,19 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
+
+    // Speed Selector Buttons (0.25x default)
+    document.querySelectorAll(".btn-speed").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const speed = parseFloat(btn.dataset.speed || "0.25");
+            state.playbackSpeed = speed;
+            document.querySelectorAll(".btn-speed").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            if (state.currentMovieData && state.currentRecommendations.length > 0) {
+                runTfidfWordBreakdownAnimation(state.currentMovieData, state.currentRecommendations);
+            }
+        });
+    });
 
     // ==========================================
     // RENDER MOVIE CARDS & REASONS
