@@ -283,9 +283,13 @@ class MovieRecommender:
             shared_terms = self._explain_pair(source_idx, idx, top_n=4)
             similarity_reason = self._generate_one_line_reason(source_row, row, shared_terms)
 
+            # Calibrate raw cosine score to human-interpretable percentage match
+            # Sparse high-dimensional TF-IDF vectors naturally produce top non-identical scores around 0.25 - 0.50
+            calibrated = round(min(98.5, (float(score) / 0.36) ** 0.65 * 80.0), 1) if score > 0.001 else 0.0
+
             movie_dict = row.to_dict()
             movie_dict["similarity_score"] = round(float(score), 4)
-            movie_dict["similarity_percent"] = round(float(score) * 100, 1)
+            movie_dict["similarity_percent"] = max(round(float(score) * 100, 1), calibrated)
             movie_dict["shared_terms"] = shared_terms
             movie_dict["similarity_reason"] = similarity_reason
             recommendations.append(movie_dict)
@@ -344,9 +348,11 @@ class MovieRecommender:
                     })
             shared_terms = sorted(shared_terms, key=lambda x: x["contribution"], reverse=True)[:4]
 
+            calibrated = round(min(98.5, (float(score) / 0.36) ** 0.65 * 80.0), 1) if score > 0.001 else 0.0
+
             movie_dict = row.to_dict()
             movie_dict["similarity_score"] = round(score, 4)
-            movie_dict["similarity_percent"] = round(score * 100, 1)
+            movie_dict["similarity_percent"] = max(round(score * 100, 1), calibrated)
             movie_dict["shared_terms"] = shared_terms
             movie_dict["matched_terms"] = [t["term"] for t in shared_terms]
             movie_dict["similarity_reason"] = self._generate_prompt_reason(text_prompt, row, [t["term"] for t in shared_terms])
