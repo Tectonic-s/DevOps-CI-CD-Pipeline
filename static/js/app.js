@@ -1,19 +1,36 @@
 /**
  * app.js - Client-Side Controller for CineMatch AI
- * Smart Computing using Python - TF-IDF Vector Space Model & Cosine Similarity Inspector
+ * Live TF-IDF Word Breakdown Animation & Recommendation Engine
+ * Smart Computing using Python - Demonstration Package
  */
 
 document.addEventListener("DOMContentLoaded", () => {
+    // Standard English NLP Stopword Corpus for Visual Discarding
+    const STOPWORDS = new Set([
+        "a", "about", "above", "after", "again", "against", "all", "am", "an", "and", "any", "are", 
+        "as", "at", "be", "because", "been", "before", "being", "below", "between", "both", "but", 
+        "by", "can", "could", "did", "do", "does", "doing", "down", "during", "each", "few", "for", 
+        "from", "further", "had", "has", "have", "having", "he", "her", "here", "hers", "herself", 
+        "him", "himself", "his", "how", "i", "if", "in", "into", "is", "it", "its", "itself", "just", 
+        "me", "more", "most", "my", "myself", "no", "nor", "not", "of", "off", "on", "once", "only", 
+        "or", "other", "our", "ours", "ourselves", "out", "over", "own", "same", "she", "should", 
+        "so", "some", "such", "than", "that", "the", "their", "theirs", "them", "themselves", "then", 
+        "there", "these", "they", "this", "those", "through", "to", "too", "under", "until", "up", 
+        "very", "was", "we", "were", "what", "when", "where", "which", "while", "who", "whom", "why", 
+        "with", "would", "you", "your", "yours", "yourself", "yourselves"
+    ]);
+
     // State Store
     const state = {
         allMovies: [],
         currentSourceId: 1, // Default: Inception
         currentMovieData: null,
         currentRecommendations: [],
-        visualizeSearch: true, // Toggle for showing/hiding mathematical feature attribution
+        showMatchedChips: true,
         watchlist: JSON.parse(localStorage.getItem("cinematch_watchlist") || "[]"),
         corpusStats: null,
-        activeSearchMode: "movie" // "movie" or "prompt"
+        activeSearchMode: "movie", // "movie" or "prompt"
+        animationTimeouts: []
     };
 
     // DOM Elements
@@ -25,18 +42,22 @@ document.addEventListener("DOMContentLoaded", () => {
         btnSearchSubmit: document.getElementById("btn-search-submit"),
         quickPickChips: document.getElementById("quick-pick-chips"),
 
-        // Filter Controls
-        filterGenre: document.getElementById("filter-genre"),
-        filterRating: document.getElementById("filter-rating"),
-        ratingValDisplay: document.getElementById("rating-val-display"),
-        filterTopN: document.getElementById("filter-top-n"),
+        // Animation Stage Elements
+        animationStageCard: document.getElementById("animation-stage-card"),
+        animStageTitle: document.getElementById("anim-stage-title"),
+        btnReplayAnim: document.getElementById("btn-replay-anim"),
+        btnSkipAnim: document.getElementById("btn-skip-anim"),
+        pillStep1: document.getElementById("pill-step-1"),
+        pillStep2: document.getElementById("pill-step-2"),
+        pillStep3: document.getElementById("pill-step-3"),
+        connector1: document.getElementById("connector-1"),
+        connector2: document.getElementById("connector-2"),
+        animPhaseStatus: document.getElementById("anim-phase-status"),
+        animTokensContainer: document.getElementById("anim-tokens-container"),
+        animMatchingBlock: document.getElementById("anim-matching-block"),
+        animMatchesGrid: document.getElementById("anim-matches-grid"),
 
-        // "Visualize Search" Toggle
-        btnToggleVisualize: document.getElementById("btn-toggle-visualize"),
-        visualizeToggleIndicator: document.getElementById("visualize-toggle-indicator"),
-        visualMathPanel: document.getElementById("visual-math-panel"),
-
-        // Active Anchor / Source Movie Card
+        // Source Movie Banner
         sourceMovieCard: document.getElementById("source-movie-card"),
         srcPoster: document.getElementById("src-poster"),
         srcTitle: document.getElementById("src-title"),
@@ -48,17 +69,27 @@ document.addEventListener("DOMContentLoaded", () => {
         srcOverview: document.getElementById("src-overview"),
         srcTfidfTerms: document.getElementById("src-tfidf-terms"),
 
+        // Filters
+        filterGenre: document.getElementById("filter-genre"),
+        filterRating: document.getElementById("filter-rating"),
+        ratingValDisplay: document.getElementById("rating-val-display"),
+        filterTopN: document.getElementById("filter-top-n"),
+        btnToggleVisualize: document.getElementById("btn-toggle-visualize"),
+        visualizeToggleIndicator: document.getElementById("visualize-toggle-indicator"),
+
         // Recommendations Grid
         resultsHeading: document.getElementById("results-heading"),
         resultsSubheading: document.getElementById("results-subheading"),
         recommendationsGrid: document.getElementById("recommendations-grid"),
 
-        // Header & Watchlist Drawer
-        headerMatrixShape: document.getElementById("header-matrix-shape"),
-        dashMatrixDim: document.getElementById("dash-matrix-dim"),
-        dashSparsityVal: document.getElementById("dash-sparsity-val"),
+        // Blueprint Modal
+        blueprintModal: document.getElementById("blueprint-modal"),
         btnOpenAlgoBlueprint: document.getElementById("btn-open-algo-blueprint"),
-        btnQuickAlgoView: document.getElementById("btn-quick-algo-view"),
+        btnCloseBlueprintModal: document.getElementById("btn-close-blueprint-modal"),
+        blueprintRareTerms: document.getElementById("blueprint-rare-terms"),
+        blueprintCommonTerms: document.getElementById("blueprint-common-terms"),
+
+        // Watchlist Drawer
         btnOpenWatchlist: document.getElementById("btn-open-watchlist"),
         watchlistCountBadge: document.getElementById("watchlist-count"),
         watchlistDrawerBackdrop: document.getElementById("watchlist-drawer-backdrop"),
@@ -67,22 +98,11 @@ document.addEventListener("DOMContentLoaded", () => {
         watchlistGrid: document.getElementById("watchlist-grid"),
         btnClearWatchlist: document.getElementById("btn-clear-watchlist"),
 
-        // Modals
-        blueprintModal: document.getElementById("blueprint-modal"),
-        btnCloseBlueprintModal: document.getElementById("btn-close-blueprint-modal"),
-        blueprintRareTerms: document.getElementById("blueprint-rare-terms"),
-        blueprintCommonTerms: document.getElementById("blueprint-common-terms"),
-
-        vectorMathModal: document.getElementById("vector-math-modal"),
-        btnCloseMathModal: document.getElementById("btn-close-math-modal"),
-        mathPairBanner: document.getElementById("math-pair-banner"),
-        mathBreakdownTbody: document.getElementById("math-breakdown-tbody"),
-        mathFormulaSummary: document.getElementById("math-formula-summary"),
-
-        brandLogoBtn: document.getElementById("brand-logo-btn"),
+        // Detail Modal
         movieModal: document.getElementById("movie-modal"),
         modalContent: document.getElementById("modal-content"),
         btnCloseModal: document.getElementById("btn-close-modal"),
+        brandLogoBtn: document.getElementById("brand-logo-btn"),
         toastNotify: document.getElementById("toast-notify"),
         toastText: document.getElementById("toast-text")
     };
@@ -96,7 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
         updateWatchlistBadge();
         await fetchAllMovies();
         await fetchStats();
-        // Load default movie (Inception)
+        // Load default movie (Inception) and run initial animation
         await loadSourceMovieAndRecommend(state.currentSourceId);
     }
 
@@ -120,17 +140,6 @@ document.addEventListener("DOMContentLoaded", () => {
             if (data.status === "success") {
                 state.corpusStats = data.stats;
                 populateGenreFilter(data.stats.genres || []);
-
-                // Populate dashboard and header metrics
-                if (elements.headerMatrixShape) {
-                    elements.headerMatrixShape.textContent = `ℝ²⁴⁷ ˣ ⁵⁰⁰⁰`;
-                }
-                if (elements.dashMatrixDim) {
-                    elements.dashMatrixDim.textContent = `${data.stats.total_movies} × ${data.stats.vocab_size.toLocaleString()}`;
-                }
-                if (elements.dashSparsityVal && data.stats.sparsity_percent) {
-                    elements.dashSparsityVal.textContent = `${data.stats.sparsity_percent}%`;
-                }
             }
         } catch (err) {
             console.error("Failed to fetch stats:", err);
@@ -159,10 +168,8 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Close dropdown
         elements.autocompleteResults.classList.remove("active");
 
-        // Try exact or substring match in allMovies
         const lower = query.toLowerCase();
         const found = state.allMovies.find(m => m.title.toLowerCase() === lower) ||
                       state.allMovies.find(m => m.title.toLowerCase().startsWith(lower)) ||
@@ -174,7 +181,7 @@ document.addEventListener("DOMContentLoaded", () => {
             loadSourceMovieAndRecommend(found.id);
             elements.searchInput.value = found.title;
         } else {
-            // Free-text natural language vector search
+            // Free-text plot search
             state.activeSearchMode = "prompt";
             executePromptVectorSearch(query);
         }
@@ -203,7 +210,6 @@ document.addEventListener("DOMContentLoaded", () => {
             elements.sourceMovieCard.style.display = "grid";
         }
 
-        // Fetch Movie Details
         try {
             const movieRes = await fetch(`/api/movie/${movieId}`);
             const movieData = await movieRes.json();
@@ -215,7 +221,6 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error(err);
         }
 
-        // Fetch Similar Recommendations
         await fetchRecommendations();
     }
 
@@ -231,26 +236,21 @@ document.addEventListener("DOMContentLoaded", () => {
         elements.srcDirector.textContent = movie.director;
         elements.srcOverview.textContent = movie.overview;
 
-        // Render Genres
         const genres = movie.genres ? movie.genres.split(",") : [];
         elements.srcGenres.innerHTML = genres.map(g => `<span class="genre-pill">${g.trim()}</span>`).join("");
 
-        // Render Top TF-IDF Terms
         if (movie.top_keywords && movie.top_keywords.length > 0) {
             elements.srcTfidfTerms.innerHTML = movie.top_keywords.slice(0, 8).map(k => `
-                <div class="tfidf-tag" title="Term Frequency x Inverse Document Frequency: ${k.tfidf_score}">
-                    ${k.term} <span>w=${k.tfidf_score}</span>
+                <div class="tfidf-tag" title="TF-IDF Weight: ${k.tfidf_score}">
+                    <i class="fa-solid fa-tag"></i> ${k.term}
                 </div>
             `).join("");
         } else {
-            elements.srcTfidfTerms.innerHTML = '<span class="text-muted">No high-weight terms calculated</span>';
+            elements.srcTfidfTerms.innerHTML = '<span class="text-muted">No keywords calculated</span>';
         }
 
         if (elements.resultsHeading) {
-            elements.resultsHeading.innerHTML = `Vector Space Recommendations for "<strong>${movie.title}</strong>"`;
-        }
-        if (elements.resultsSubheading) {
-            elements.resultsSubheading.textContent = `Ranked by angular cosine distance cos(θ) = u · v in ℝ⁵⁰⁰⁰ based on synopsis, director (${movie.director}), and themes.`;
+            elements.resultsHeading.innerHTML = `Similar Movies Found for "<strong>${movie.title}</strong>"`;
         }
     }
 
@@ -258,13 +258,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const topN = elements.filterTopN.value;
         const genre = elements.filterGenre.value;
         const minRating = elements.filterRating.value;
-
-        elements.recommendationsGrid.innerHTML = `
-            <div class="empty-state">
-                <i class="fa-solid fa-spinner fa-spin empty-icon"></i>
-                <p>Computing 5,000-dimensional TF-IDF vectors and cosine dot products...</p>
-            </div>
-        `;
 
         try {
             const url = `/api/recommend?movie_id=${state.currentSourceId}&top_n=${topN}&genre=${encodeURIComponent(genre)}&min_rating=${minRating}`;
@@ -275,9 +268,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 state.currentRecommendations = data.recommendations;
                 renderMovieCards(elements.recommendationsGrid, data.recommendations);
 
-                // Smoothly scroll down so user sees similar movies below search
-                if (elements.sourceMovieCard && elements.sourceMovieCard.style.display !== "none") {
-                    elements.sourceMovieCard.scrollIntoView({ behavior: "smooth", block: "start" });
+                // TRIGGER THE ANIMATION: Break up searched movie into words, discard stopwords, and show matches!
+                if (state.currentMovieData) {
+                    runTfidfWordBreakdownAnimation(state.currentMovieData, data.recommendations);
                 }
             } else {
                 elements.recommendationsGrid.innerHTML = `
@@ -313,18 +306,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const minRating = elements.filterRating.value;
 
         if (elements.resultsHeading) {
-            elements.resultsHeading.innerHTML = `Vector Search Results for "<strong>${prompt}</strong>"`;
+            elements.resultsHeading.innerHTML = `Matching Movies for "<strong>${prompt}</strong>"`;
         }
-        if (elements.resultsSubheading) {
-            elements.resultsSubheading.textContent = `Closest geometric alignments in TF-IDF term space ranked by angular cosine distance cos(θ).`;
-        }
-
-        elements.recommendationsGrid.innerHTML = `
-            <div class="empty-state">
-                <i class="fa-solid fa-spinner fa-spin empty-icon"></i>
-                <p>Vectorizing prompt query and calculating cosine similarity in ℝ⁵⁰⁰⁰...</p>
-            </div>
-        `;
 
         try {
             const res = await fetch("/api/recommend-prompt", {
@@ -342,16 +325,21 @@ document.addEventListener("DOMContentLoaded", () => {
             if (data.status === "success" && data.recommendations.length > 0) {
                 state.currentRecommendations = data.recommendations;
                 renderMovieCards(elements.recommendationsGrid, data.recommendations);
-                showToast(`Found ${data.recommendations.length} matching films in vector space`);
 
-                if (elements.recommendationsSection) {
-                    elements.recommendationsSection.scrollIntoView({ behavior: "smooth", block: "start" });
-                }
+                // Run animation on the prompt text!
+                const syntheticPromptMovie = {
+                    title: prompt,
+                    overview: prompt,
+                    top_keywords: (data.recommendations[0]?.matched_terms || []).map(t => ({ term: t, tfidf_score: 0.2 }))
+                };
+                runTfidfWordBreakdownAnimation(syntheticPromptMovie, data.recommendations);
+
+                showToast(`Found ${data.recommendations.length} matching films`);
             } else {
                 elements.recommendationsGrid.innerHTML = `
                     <div class="empty-state">
                         <i class="fa-solid fa-magnifying-glass empty-icon"></i>
-                        <p>No films matched the prompt "${prompt}". Try broader terms like "space", "robot", "action", "mafia".</p>
+                        <p>No films matched the prompt "${prompt}". Try words like "space", "robot", "action", "mafia".</p>
                     </div>
                 `;
             }
@@ -366,8 +354,184 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // ==========================================================================
+    // THE CORE ANIMATION: Word Breakdown, Stopword Discarding, & Target Matching
+    // ==========================================================================
+
+    function clearAnimationTimers() {
+        state.animationTimeouts.forEach(t => clearTimeout(t));
+        state.animationTimeouts = [];
+    }
+
+    function runTfidfWordBreakdownAnimation(sourceMovie, recommendations) {
+        clearAnimationTimers();
+
+        if (!elements.animationStageCard) return;
+        elements.animationStageCard.style.display = "block";
+
+        // Smooth scroll to animation stage so user sees it in action
+        elements.animationStageCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+        elements.animStageTitle.textContent = `Analyzing & Breaking Down: "${sourceMovie.title}"`;
+
+        // Reset step progress indicators
+        elements.pillStep1.className = "anim-step-pill active";
+        elements.pillStep2.className = "anim-step-pill";
+        elements.pillStep3.className = "anim-step-pill";
+        elements.connector1.className = "anim-step-connector";
+        elements.connector2.className = "anim-step-connector";
+        elements.animMatchingBlock.style.display = "none";
+        elements.animMatchesGrid.innerHTML = "";
+
+        // Extract description words
+        const rawWords = (sourceMovie.overview || "")
+            .replace(/[^\w\s-]/g, "")
+            .split(/\s+/)
+            .filter(w => w.trim().length > 0)
+            .slice(0, 26); // Focus on first 26 words for clean visual presentation
+
+        // Extract high-value TF-IDF keywords
+        const salientTermsSet = new Set(
+            (sourceMovie.top_keywords || []).map(k => k.term.toLowerCase().split(/\s+/)).flat()
+        );
+
+        // PHASE 1: Populate all word chips with stagger animation
+        elements.animPhaseStatus.innerHTML = `<i class="fa-solid fa-scissors text-mint"></i> Step 1: Breaking description into ${rawWords.length} individual word tokens...`;
+        
+        elements.animTokensContainer.innerHTML = rawWords.map((word, i) => {
+            return `
+                <span class="anim-word-token" id="token-${i}" style="animation-delay: ${i * 35}ms;">
+                    <span class="token-word">${word}</span>
+                </span>
+            `;
+        }).join("");
+
+        // PHASE 2: Discard stopwords and highlight high TF-IDF words (at 900ms)
+        const t1 = setTimeout(() => {
+            elements.pillStep1.className = "anim-step-pill completed";
+            elements.connector1.className = "anim-step-connector active";
+            elements.pillStep2.className = "anim-step-pill active";
+
+            elements.animPhaseStatus.innerHTML = `<i class="fa-solid fa-filter text-amber"></i> Step 2: Discarding generic stopwords & keeping high-value TF-IDF keywords...`;
+
+            rawWords.forEach((word, i) => {
+                const el = document.getElementById(`token-${i}`);
+                if (!el) return;
+
+                const lower = word.toLowerCase();
+                const isStopword = STOPWORDS.has(lower) || lower.length <= 2;
+                const isSalient = salientTermsSet.has(lower) || (!isStopword && lower.length > 4);
+
+                if (isStopword) {
+                    el.classList.add("discarded");
+                    el.innerHTML = `
+                        <span class="token-word">${word}</span>
+                        <span class="token-status-tag"><i class="fa-solid fa-xmark"></i></span>
+                    `;
+                } else if (isSalient) {
+                    el.classList.add("retained");
+                    el.innerHTML = `
+                        <i class="fa-solid fa-sparkles"></i>
+                        <span class="token-word">${word}</span>
+                        <span class="token-status-tag">kept (TF-IDF)</span>
+                    `;
+                }
+            });
+        }, 950);
+        state.animationTimeouts.push(t1);
+
+        // PHASE 3: Match candidate movies using overlapping words (at 1900ms)
+        const t2 = setTimeout(() => {
+            elements.pillStep2.className = "anim-step-pill completed";
+            elements.connector2.className = "anim-step-connector active";
+            elements.pillStep3.className = "anim-step-pill active";
+
+            elements.animPhaseStatus.innerHTML = `<i class="fa-solid fa-bolt text-mint"></i> Step 3: Finding candidate movies that share these exact keywords in their descriptions!`;
+
+            elements.animMatchingBlock.style.display = "flex";
+
+            // Take top 3 recommendations to showcase description overlap
+            const topMatches = recommendations.slice(0, 3);
+            elements.animMatchesGrid.innerHTML = topMatches.map((movie, idx) => {
+                // Highlight shared terms in overview
+                let snippet = movie.overview || "";
+                if (snippet.length > 130) snippet = snippet.slice(0, 130) + "...";
+
+                const sharedList = (movie.shared_terms || []).map(t => t.term.replace(/_/g, " "));
+                sharedList.forEach(term => {
+                    if (term.length > 2) {
+                        const regex = new RegExp(`(${term})`, "gi");
+                        snippet = snippet.replace(regex, `<mark class="match-highlight">$1</mark>`);
+                    }
+                });
+
+                const matchedTags = sharedList.slice(0, 3).map(t => `<span class="match-highlight">${t}</span>`).join(" ");
+
+                return `
+                    <div class="anim-match-card" style="animation-delay: ${idx * 150}ms;">
+                        <img src="${movie.poster_url}" alt="${movie.title}" class="anim-match-thumb">
+                        <div class="anim-match-info">
+                            <div class="anim-match-title">${movie.title}</div>
+                            <div class="anim-match-score"><i class="fa-solid fa-chart-simple"></i> ${movie.similarity_percent}% Word Match</div>
+                            <div class="anim-match-desc-snippet">${snippet}</div>
+                            <div class="match-words-badge">
+                                <i class="fa-solid fa-check-double"></i> Overlap: ${matchedTags || 'Thematic alignment'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join("");
+        }, 1950);
+        state.animationTimeouts.push(t2);
+
+        // PHASE 4: Animation Complete (at 2800ms)
+        const t3 = setTimeout(() => {
+            elements.pillStep3.className = "anim-step-pill completed";
+            elements.animPhaseStatus.innerHTML = `<i class="fa-solid fa-circle-check text-emerald"></i> Done! Found ${recommendations.length} movies matching "${sourceMovie.title}" via description keywords.`;
+        }, 2850);
+        state.animationTimeouts.push(t3);
+    }
+
+    // Skip Button: Immediately jump to completed state
+    if (elements.btnSkipAnim) {
+        elements.btnSkipAnim.addEventListener("click", () => {
+            clearAnimationTimers();
+            elements.pillStep1.className = "anim-step-pill completed";
+            elements.connector1.className = "anim-step-connector active";
+            elements.pillStep2.className = "anim-step-pill completed";
+            elements.connector2.className = "anim-step-connector active";
+            elements.pillStep3.className = "anim-step-pill completed";
+
+            elements.animPhaseStatus.innerHTML = `<i class="fa-solid fa-circle-check text-emerald"></i> Skipped to recommendations.`;
+
+            // Mark retained chips
+            document.querySelectorAll(".anim-word-token").forEach(el => {
+                const text = el.querySelector(".token-word")?.textContent?.toLowerCase() || "";
+                if (STOPWORDS.has(text) || text.length <= 2) {
+                    el.classList.add("discarded");
+                } else {
+                    el.classList.add("retained");
+                }
+            });
+
+            // Smooth scroll down to full recommendations
+            if (elements.recommendationsSection) {
+                elements.recommendationsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+        });
+    }
+
+    // Replay Button: Run animation again
+    if (elements.btnReplayAnim) {
+        elements.btnReplayAnim.addEventListener("click", () => {
+            if (state.currentMovieData && state.currentRecommendations.length > 0) {
+                runTfidfWordBreakdownAnimation(state.currentMovieData, state.currentRecommendations);
+            }
+        });
+    }
+
     // ==========================================
-    // RENDER MOVIE CARDS & VISUAL SIMILARITY
+    // RENDER MOVIE CARDS & REASONS
     // ==========================================
 
     function getOneLineReason(movie) {
@@ -379,7 +543,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             if (movie.shared_terms && movie.shared_terms.length > 0) {
                 const term = movie.shared_terms[0].term.replace(/_/g, ' ');
-                return `Shares core themes in ${term} and character dynamics.`;
+                return `Shares description keywords in "${term}" and character dynamics.`;
             }
         }
         if (movie.genres) {
@@ -404,49 +568,24 @@ document.addEventListener("DOMContentLoaded", () => {
             const isBookmarked = state.watchlist.some(m => m.id === movie.id);
             const genres = movie.genres ? movie.genres.split(",").slice(0, 3) : [];
             const similarityPercent = movie.similarity_percent !== undefined ? movie.similarity_percent : (movie.cosine_similarity ? (movie.cosine_similarity * 100).toFixed(1) : 0);
-            const cosScore = movie.similarity_score !== undefined ? movie.similarity_score : (similarityPercent / 100).toFixed(4);
             const isHighMatch = similarityPercent >= 15.0;
 
-            // Visual Feature Attribution (How Similarity Was Found)
-            let visualHowFoundHtml = "";
+            // Matched keyword chips from description
+            let matchedChipsHtml = "";
             if (movie.shared_terms && movie.shared_terms.length > 0) {
-                const maxContrib = Math.max(...movie.shared_terms.map(t => t.contribution || 0.01), 0.01);
-
-                const termsHtml = movie.shared_terms.slice(0, 6).map(t => {
-                    const barPercent = Math.min(Math.round(((t.contribution || 0.01) / maxContrib) * 100), 100);
-                    return `
-                        <div class="feature-contrib-item">
-                            <div class="feature-contrib-meta">
-                                <span class="feature-term"><code>${t.term}</code></span>
-                                <span class="feature-score">+${t.contribution}</span>
-                            </div>
-                            <div class="feature-bar-track">
-                                <div class="feature-bar-fill" style="width: ${barPercent}%"></div>
-                            </div>
-                        </div>
-                    `;
+                const termsHtml = movie.shared_terms.slice(0, 4).map(t => {
+                    const clean = t.term.replace(/_/g, " ");
+                    return `<span class="shared-term-chip"><i class="fa-solid fa-tag"></i> ${clean}</span>`;
                 }).join("");
 
-                visualHowFoundHtml = `
-                    <div class="how-found-box ${state.visualizeSearch ? 'visible' : 'hidden'}">
+                matchedChipsHtml = `
+                    <div class="how-found-box ${state.showMatchedChips ? 'visible' : 'hidden'}">
                         <div class="how-found-header">
-                            <i class="fa-solid fa-square-root-variable"></i>
-                            <span>Vector Dot Product Contributions (w_A × w_B):</span>
+                            <i class="fa-solid fa-link text-mint"></i>
+                            <span>Matched Description Words:</span>
                         </div>
-                        <div class="feature-contrib-list">
+                        <div style="display:flex; flex-wrap:wrap; gap:0.35rem; margin-top:0.4rem;">
                             ${termsHtml}
-                        </div>
-                    </div>
-                `;
-            } else if (movie.matched_terms && movie.matched_terms.length > 0) {
-                visualHowFoundHtml = `
-                    <div class="how-found-box ${state.visualizeSearch ? 'visible' : 'hidden'}">
-                        <div class="how-found-header">
-                            <i class="fa-solid fa-bullseye"></i>
-                            <span>Matched Query N-Grams:</span>
-                        </div>
-                        <div class="shared-terms-chips" style="margin-top:0.5rem;">
-                            ${movie.matched_terms.map(t => `<span class="shared-term-chip">${t}</span>`).join("")}
                         </div>
                     </div>
                 `;
@@ -459,7 +598,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     <div class="movie-card-poster-wrap">
                         <img src="${movie.poster_url || 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80'}" alt="${movie.title}" class="movie-card-poster" loading="lazy">
                         <div class="similarity-badge ${isHighMatch ? 'high-match' : ''}">
-                            <i class="fa-solid fa-square-root-variable"></i> cos(θ) = ${cosScore} (${similarityPercent}%)
+                            <i class="fa-solid fa-chart-simple"></i> ${similarityPercent}% Match
                         </div>
                         <button class="btn-bookmark-card ${isBookmarked ? 'bookmarked' : ''}" data-id="${movie.id}" title="${isBookmarked ? 'Remove from Watchlist' : 'Save to Watchlist'}">
                             <i class="${isBookmarked ? 'fa-solid' : 'fa-regular'} fa-bookmark"></i>
@@ -484,17 +623,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         <p class="movie-card-overview">${movie.overview || ''}</p>
 
-                        ${visualHowFoundHtml}
+                        ${matchedChipsHtml}
 
                         <div class="movie-card-actions">
                             <button class="btn-card-action primary btn-inspect" data-id="${movie.id}" title="View details">
                                 <i class="fa-regular fa-file-lines"></i> Details
                             </button>
-                            <button class="btn-card-action btn-inspect-vector-math" data-id="${movie.id}" title="Inspect component-wise dot product">
-                                <i class="fa-solid fa-calculator"></i> Vector Math
-                            </button>
-                            <button class="btn-card-action btn-find-similar" data-id="${movie.id}" title="Use as anchor">
-                                <i class="fa-solid fa-compass"></i> Similar
+                            <button class="btn-card-action btn-find-similar" data-id="${movie.id}" title="Search similar to this film">
+                                <i class="fa-solid fa-compass"></i> Find Similar
                             </button>
                         </div>
                     </div>
@@ -515,13 +651,6 @@ document.addEventListener("DOMContentLoaded", () => {
             btn.addEventListener("click", () => {
                 const id = parseInt(btn.dataset.id);
                 openMovieModal(id);
-            });
-        });
-
-        container.querySelectorAll(".btn-inspect-vector-math").forEach(btn => {
-            btn.addEventListener("click", () => {
-                const id = parseInt(btn.dataset.id);
-                openVectorMathModal(state.currentSourceId, id);
             });
         });
 
@@ -581,7 +710,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (matches.length === 0) {
             elements.autocompleteResults.innerHTML = `
                 <div class="autocomplete-item empty">
-                    <span>No exact title match. Press <kbd>Enter</kbd> to execute free-text vector search</span>
+                    <span>No exact title match. Press <kbd>Enter</kbd> to execute description search</span>
                 </div>
             `;
             elements.autocompleteResults.classList.add("active");
@@ -634,7 +763,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ==========================================
-    // FILTER CONTROLS & "VISUALIZE SEARCH" TOGGLE
+    // FILTERS & TOGGLES
     // ==========================================
 
     elements.filterGenre.addEventListener("change", () => {
@@ -665,25 +794,21 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // "Visualize Search" Toggle
     elements.btnToggleVisualize.addEventListener("click", () => {
-        state.visualizeSearch = !state.visualizeSearch;
+        state.showMatchedChips = !state.showMatchedChips;
         
-        if (state.visualizeSearch) {
+        if (state.showMatchedChips) {
             elements.btnToggleVisualize.classList.add("active");
             elements.visualizeToggleIndicator.textContent = "ON";
             elements.visualizeToggleIndicator.className = "toggle-pill on";
-            if (elements.visualMathPanel) elements.visualMathPanel.style.display = "block";
         } else {
             elements.btnToggleVisualize.classList.remove("active");
             elements.visualizeToggleIndicator.textContent = "OFF";
             elements.visualizeToggleIndicator.className = "toggle-pill off";
-            if (elements.visualMathPanel) elements.visualMathPanel.style.display = "none";
         }
 
-        // Toggle visibility of how-found-box on all rendered cards
         document.querySelectorAll(".how-found-box").forEach(box => {
-            if (state.visualizeSearch) {
+            if (state.showMatchedChips) {
                 box.classList.remove("hidden");
                 box.classList.add("visible");
             } else {
@@ -694,7 +819,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // ==========================================
-    // ALGORITHM BLUEPRINT MODAL
+    // ALGORITHM BLUEPRINT MODAL (ALL FORMULAS KEPT HERE)
     // ==========================================
 
     function openBlueprintModal() {
@@ -702,7 +827,6 @@ document.addEventListener("DOMContentLoaded", () => {
         elements.blueprintModal.style.display = "flex";
 
         if (state.corpusStats) {
-            // Render High IDF rare terms
             if (elements.blueprintRareTerms && state.corpusStats.sample_high_idf_terms) {
                 elements.blueprintRareTerms.innerHTML = state.corpusStats.sample_high_idf_terms.map(t => `
                     <div class="idf-pill">
@@ -711,7 +835,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 `).join("");
             }
 
-            // Render Low IDF common terms
             if (elements.blueprintCommonTerms && state.corpusStats.sample_common_terms) {
                 elements.blueprintCommonTerms.innerHTML = state.corpusStats.sample_common_terms.map(t => `
                     <div class="idf-pill">
@@ -725,9 +848,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (elements.btnOpenAlgoBlueprint) {
         elements.btnOpenAlgoBlueprint.addEventListener("click", openBlueprintModal);
     }
-    if (elements.btnQuickAlgoView) {
-        elements.btnQuickAlgoView.addEventListener("click", openBlueprintModal);
-    }
     if (elements.btnCloseBlueprintModal) {
         elements.btnCloseBlueprintModal.addEventListener("click", () => {
             elements.blueprintModal.style.display = "none";
@@ -737,106 +857,6 @@ document.addEventListener("DOMContentLoaded", () => {
         elements.blueprintModal.addEventListener("click", (e) => {
             if (e.target === elements.blueprintModal) {
                 elements.blueprintModal.style.display = "none";
-            }
-        });
-    }
-
-    // ==========================================
-    // PAIRWISE VECTOR MATH MODAL (DOT PRODUCT)
-    // ==========================================
-
-    async function openVectorMathModal(sourceId, targetId) {
-        if (!elements.vectorMathModal) return;
-        elements.vectorMathModal.style.display = "flex";
-
-        elements.mathPairBanner.innerHTML = `
-            <div style="text-align:center; width:100%; padding:1rem;">
-                <i class="fa-solid fa-spinner fa-spin" style="font-size:1.5rem; color:var(--accent-mint);"></i>
-                <p style="margin-top:0.5rem; font-size:0.85rem;">Calculating component-wise TF-IDF dot product in ℝ⁵⁰⁰⁰...</p>
-            </div>
-        `;
-        elements.mathBreakdownTbody.innerHTML = '';
-        elements.mathFormulaSummary.innerHTML = '';
-
-        try {
-            const res = await fetch(`/api/explain?movie_a=${sourceId}&movie_b=${targetId}`);
-            const data = await res.json();
-
-            if (data.status === "success") {
-                renderVectorMathModal(data);
-            } else {
-                elements.mathPairBanner.innerHTML = `<p class="text-muted">${data.message || 'Error comparing vectors.'}</p>`;
-            }
-        } catch (err) {
-            console.error("Vector math error:", err);
-            elements.mathPairBanner.innerHTML = `<p class="text-muted">Failed to load vector math breakdown.</p>`;
-        }
-    }
-
-    function renderVectorMathModal(data) {
-        const totalCosine = data.cosine_similarity;
-        const totalPercent = data.similarity_percent;
-
-        elements.mathPairBanner.innerHTML = `
-            <div>
-                <span class="text-xs uppercase text-muted font-bold">Pairwise Comparison</span>
-                <div class="pair-film-name">${data.movie_a.title} &nbsp;⟷&nbsp; ${data.movie_b.title}</div>
-            </div>
-            <div style="text-align:right;">
-                <span class="text-xs uppercase text-muted font-bold">Cosine Inner Product</span>
-                <div class="pair-math-score">cos(θ) = ${totalCosine} (${totalPercent}%)</div>
-            </div>
-        `;
-
-        if (!data.shared_terms || data.shared_terms.length === 0) {
-            elements.mathBreakdownTbody.innerHTML = `
-                <tr>
-                    <td colspan="5" style="text-align:center; padding:1.5rem; color:var(--text-muted);">
-                        No high-magnitude shared n-grams found in the top component vectors.
-                    </td>
-                </tr>
-            `;
-            elements.mathFormulaSummary.innerHTML = `Cosine distance computed: cos(θ) = ${totalCosine}. Films share generic corpus narrative tokens.`;
-            return;
-        }
-
-        let totalContrib = 0;
-        const rowsHtml = data.shared_terms.map(t => {
-            const wA = t.weight_a !== undefined ? t.weight_a : '—';
-            const wB = t.weight_b !== undefined ? t.weight_b : '—';
-            const contrib = t.contribution;
-            totalContrib += contrib;
-            const pctOfCosine = totalCosine > 0 ? ((contrib / totalCosine) * 100).toFixed(1) : '0';
-
-            return `
-                <tr>
-                    <td><strong><code>${t.term}</code></strong></td>
-                    <td><span style="font-family:'JetBrains Mono';">${wA}</span></td>
-                    <td><span style="font-family:'JetBrains Mono';">${wB}</span></td>
-                    <td><strong style="color:var(--accent-mint); font-family:'JetBrains Mono';">+${contrib}</strong></td>
-                    <td><span class="text-muted">${pctOfCosine}%</span></td>
-                </tr>
-            `;
-        }).join("");
-
-        elements.mathBreakdownTbody.innerHTML = rowsHtml;
-
-        const capturedPct = totalCosine > 0 ? Math.min(Math.round((totalContrib / totalCosine) * 100), 100) : 0;
-        elements.mathFormulaSummary.innerHTML = `
-            <strong>Mathematical Summary:</strong> The inner product across all 5,000 dimensions evaluates to <code>cos(θ) = u · v = ${totalCosine}</code>. 
-            The top ${data.shared_terms.length} shared dimensions shown above account for <strong>${capturedPct}%</strong> of the total angular affinity between <em>${data.movie_a.title}</em> and <em>${data.movie_b.title}</em>.
-        `;
-    }
-
-    if (elements.btnCloseMathModal) {
-        elements.btnCloseMathModal.addEventListener("click", () => {
-            elements.vectorMathModal.style.display = "none";
-        });
-    }
-    if (elements.vectorMathModal) {
-        elements.vectorMathModal.addEventListener("click", (e) => {
-            if (e.target === elements.vectorMathModal) {
-                elements.vectorMathModal.style.display = "none";
             }
         });
     }
@@ -872,7 +892,6 @@ document.addEventListener("DOMContentLoaded", () => {
         localStorage.setItem("cinematch_watchlist", JSON.stringify(state.watchlist));
         updateWatchlistBadge();
 
-        // Update card bookmark buttons in UI
         document.querySelectorAll(`.btn-bookmark-card[data-id="${movieId}"]`).forEach(btn => {
             const isBookmarked = state.watchlist.some(m => m.id === movieId);
             btn.className = `btn-bookmark-card ${isBookmarked ? 'bookmarked' : ''}`;
@@ -935,7 +954,7 @@ document.addEventListener("DOMContentLoaded", () => {
         elements.modalContent.innerHTML = `
             <div style="grid-column: 1 / -1; padding: 3rem; text-align: center; color: var(--text-secondary);">
                 <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem; color: var(--accent-mint);"></i>
-                <p>Loading film vectors and metadata...</p>
+                <p>Loading film keywords and details...</p>
             </div>
         `;
 
@@ -957,11 +976,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const keywordsHtml = movie.top_keywords && movie.top_keywords.length > 0 ? `
             <div class="modal-section">
-                <h4>Top TF-IDF Salient Features in $\\vec{v}$</h4>
+                <h4>Extracted TF-IDF Salient Keywords</h4>
                 <div class="tfidf-tags-list">
                     ${movie.top_keywords.map(k => `
-                        <div class="tfidf-tag" title="TF-IDF Weight: ${k.tfidf_score}">
-                            ${k.term} <span>w=${k.tfidf_score}</span>
+                        <div class="tfidf-tag">
+                            <i class="fa-solid fa-tag"></i> ${k.term}
                         </div>
                     `).join("")}
                 </div>
@@ -973,7 +992,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <img src="${movie.poster_url}" alt="${movie.title}" class="modal-poster">
                 <div style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
                     <button class="btn-primary" id="modal-find-similar-btn" style="width: 100%;">
-                        <i class="fa-solid fa-compass"></i> Use as Anchor Film
+                        <i class="fa-solid fa-compass"></i> Animate & Find Similar
                     </button>
                     <button class="btn-secondary" id="modal-bookmark-btn" style="width: 100%;">
                         <i class="${isBookmarked ? 'fa-solid' : 'fa-regular'} fa-bookmark"></i>
@@ -1002,7 +1021,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
 
                 <div class="modal-section">
-                    <h4>Narrative Synopsis</h4>
+                    <h4>Description</h4>
                     <p class="modal-overview">${movie.overview}</p>
                 </div>
 
@@ -1043,7 +1062,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ==========================================
-    // TOAST HELPER
+    // TOAST & KEYBOARD HELPERS
     // ==========================================
 
     function showToast(message) {
@@ -1060,7 +1079,6 @@ document.addEventListener("DOMContentLoaded", () => {
             if (e.key === "Escape") {
                 if (elements.movieModal) elements.movieModal.style.display = "none";
                 if (elements.blueprintModal) elements.blueprintModal.style.display = "none";
-                if (elements.vectorMathModal) elements.vectorMathModal.style.display = "none";
                 if (elements.watchlistDrawerBackdrop) elements.watchlistDrawerBackdrop.style.display = "none";
                 if (elements.autocompleteResults) elements.autocompleteResults.classList.remove("active");
             }
