@@ -391,10 +391,16 @@ document.addEventListener("DOMContentLoaded", () => {
             .filter(w => w.trim().length > 0)
             .slice(0, 26); // Focus on first 26 words for clean visual presentation
 
-        // Extract high-value TF-IDF keywords
-        const salientTermsSet = new Set(
-            (sourceMovie.top_keywords || []).map(k => k.term.toLowerCase().split(/\s+/)).flat()
-        );
+        // Extract critical, highly rare TF-IDF keywords
+        const criticalKeyterms = (sourceMovie.top_keywords || []).map(k => k.term.toLowerCase());
+        const criticalTokens = new Set();
+        criticalKeyterms.forEach(k => {
+            k.split(/\s+/).forEach(w => {
+                if (w.length > 2 && !STOPWORDS.has(w)) {
+                    criticalTokens.add(w);
+                }
+            });
+        });
 
         // Playback speed factor (0.25x = 4x slower)
         const currentSpeed = state.playbackSpeed || 0.25;
@@ -413,14 +419,14 @@ document.addEventListener("DOMContentLoaded", () => {
             `;
         }).join("");
 
-        // PHASE 2: Discard stopwords and highlight high TF-IDF words (staggered in 0.25x)
+        // PHASE 2: Discard common words and keep ONLY highly rare, critical TF-IDF keywords
         const t1Delay = Math.round(950 * speedFactor);
         const t1 = setTimeout(() => {
             elements.pillStep1.className = "anim-step-pill completed";
             elements.connector1.className = "anim-step-connector active";
             elements.pillStep2.className = "anim-step-pill active";
 
-            elements.animPhaseStatus.innerHTML = `<i class="fa-solid fa-filter text-amber"></i> Step 2: Discarding generic stopwords & keeping high-value TF-IDF keywords...`;
+            elements.animPhaseStatus.innerHTML = `<i class="fa-solid fa-filter text-amber"></i> Step 2: Discarding generic words & keeping ONLY rare, critical TF-IDF keywords...`;
 
             rawWords.forEach((word, i) => {
                 const wordEvalDelay = Math.round(i * 20 * speedFactor);
@@ -430,20 +436,32 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     const lower = word.toLowerCase();
                     const isStopword = STOPWORDS.has(lower) || lower.length <= 2;
-                    const isSalient = salientTermsSet.has(lower) || (!isStopword && lower.length > 4);
+                    
+                    // Strict filter: Keep ONLY highly rare, critical words belonging to this movie's TF-IDF features!
+                    const isCritical = !isStopword && (
+                        criticalTokens.has(lower) ||
+                        criticalKeyterms.some(kw => kw.includes(lower) || (lower.length > 4 && kw.startsWith(lower.slice(0, 4))))
+                    );
 
-                    if (isStopword) {
+                    if (isCritical) {
+                        el.classList.add("retained");
+                        el.innerHTML = `
+                            <i class="fa-solid fa-star text-amber"></i>
+                            <span class="token-word">${word}</span>
+                            <span class="token-status-tag">critical (rare)</span>
+                        `;
+                    } else if (isStopword) {
                         el.classList.add("discarded");
                         el.innerHTML = `
                             <span class="token-word">${word}</span>
-                            <span class="token-status-tag"><i class="fa-solid fa-xmark"></i></span>
+                            <span class="token-status-tag"><i class="fa-solid fa-xmark"></i> stopword</span>
                         `;
-                    } else if (isSalient) {
-                        el.classList.add("retained");
+                    } else {
+                        // Common / Low-IDF word is discarded!
+                        el.classList.add("discarded", "low-idf");
                         el.innerHTML = `
-                            <i class="fa-solid fa-sparkles"></i>
                             <span class="token-word">${word}</span>
-                            <span class="token-status-tag">kept (TF-IDF)</span>
+                            <span class="token-status-tag"><i class="fa-solid fa-xmark"></i> common</span>
                         `;
                     }
                 }, wordEvalDelay);
@@ -470,7 +488,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 let snippet = movie.overview || "";
                 if (snippet.length > 130) snippet = snippet.slice(0, 130) + "...";
 
-                const sharedList = (movie.shared_terms || []).map(t => t.term.replace(/_/g, " "));
+                const sharedList = (movie.shared_terms || [])
+                    .map(t => t.term.replace(/_/g, " "))
+                    .filter(t => !['action', 'drama', 'thriller', 'adventure', 'sci-fi', 'scifi', 'crime'].includes(t.toLowerCase()))
+                    .slice(0, 3);
+
                 sharedList.forEach(term => {
                     if (term.length > 2) {
                         const regex = new RegExp(`(${term})`, "gi");
@@ -478,7 +500,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 });
 
-                const matchedTags = sharedList.slice(0, 3).map(t => `<span class="match-highlight">${t}</span>`).join(" ");
+                const matchedTags = sharedList.slice(0, 3).map(t => `<span class="match-highlight"><i class="fa-solid fa-star text-amber"></i> ${t}</span>`).join(" ");
                 const matchDelay = Math.round(idx * 250 * speedFactor);
 
                 return `
@@ -522,10 +544,15 @@ document.addEventListener("DOMContentLoaded", () => {
             // Mark retained chips
             document.querySelectorAll(".anim-word-token").forEach(el => {
                 const text = el.querySelector(".token-word")?.textContent?.toLowerCase() || "";
-                if (STOPWORDS.has(text) || text.length <= 2) {
-                    el.classList.add("discarded");
-                } else {
+                const isStopword = STOPWORDS.has(text) || text.length <= 2;
+                const isCritical = !isStopword && (
+                    criticalTokens.has(text) ||
+                    criticalKeyterms.some(kw => kw.includes(text) || (text.length > 4 && kw.startsWith(text.slice(0, 4))))
+                );
+                if (isCritical) {
                     el.classList.add("retained");
+                } else {
+                    el.classList.add("discarded");
                 }
             });
 

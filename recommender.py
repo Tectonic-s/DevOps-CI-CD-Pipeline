@@ -8,7 +8,7 @@ import os
 import re
 import pandas as pd
 import numpy as np
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer, ENGLISH_STOP_WORDS
 from sklearn.metrics.pairwise import cosine_similarity
 
 
@@ -77,11 +77,21 @@ class MovieRecommender:
         self.indices = {row["id"]: idx for idx, row in self.df.iterrows()}
         self.title_to_id = {row["title"].lower().strip(): row["id"] for _, row in self.df.iterrows()}
 
+        # Movie-specific boilerplate stopwords to discard generic film vocabulary
+        custom_stop_words = list(ENGLISH_STOP_WORDS.union({
+            "movie", "movies", "film", "films", "story", "stories", "life", "lives",
+            "young", "new", "world", "man", "men", "woman", "women", "time", "day",
+            "year", "years", "set", "takes", "way", "find", "help", "save"
+        }))
+
         # Initialize TF-IDF Vectorizer
-        # Using sublinear_tf=True (1 + log(TF)), English stop words, unigrams and bigrams
+        # max_df=0.45: filters out common words appearing across >45% of films
+        # sublinear_tf=True: log-scales term frequency (1 + log(TF))
         self.vectorizer = TfidfVectorizer(
-            stop_words="english",
-            max_features=5000,
+            stop_words=custom_stop_words,
+            max_df=0.45,
+            min_df=1,
+            max_features=6000,
             ngram_range=(1, 2),
             sublinear_tf=True,
             token_pattern=r"(?u)\b[\w-]+\b"
@@ -103,48 +113,80 @@ class MovieRecommender:
             return None
         idx = self.indices[movie_id]
         movie = self.df.iloc[idx].to_dict()
-        movie["top_keywords"] = self.get_top_keywords_for_movie(movie_id, top_n=6)
+        movie["top_keywords"] = self.get_top_keywords_for_movie(movie_id, top_n=5)
         return movie
 
-    def get_top_keywords_for_movie(self, movie_id, top_n=8):
-        """Returns the top TF-IDF terms and their weights for a given movie."""
+    def get_top_keywords_for_movie(self, movie_id, top_n=5, min_idf=3.6):
+        """
+        Returns only the most critical, highly rare TF-IDF terms for a movie.
+        Ranks candidates by TF-IDF * (IDF ** 1.3) to isolate highly discriminative vocabulary.
+        """
         if movie_id not in self.indices:
             return []
         idx = self.indices[movie_id]
         row_vector = self.tfidf_matrix[idx].toarray().flatten()
-        top_indices = row_vector.argsort()[::-1][:top_n]
+        idf = self.vectorizer.idf_
 
+        GENERIC_TAGS = {
+            "action", "drama", "thriller", "adventure", "sci-fi", "scifi", "comedy",
+            "crime", "romance", "action adventure", "adventure thriller", "action scifi",
+            "thriller action", "crime drama", "scifi action", "family", "fantasy"
+        }
+
+        candidates = []
+        for i in range(len(row_vector)):
+            if row_vector[i] > 0 and idf[i] >= min_idf:
+                term = self.feature_names[i]
+                if len(term) > 2 and term not in GENERIC_TAGS:
+                    # Rare Critical Metric: TF-IDF score amplified by IDF power
+                    crit_score = float(row_vector[i] * (idf[i] ** 1.3))
+                    candidates.append((crit_score, row_vector[i], idf[i], term))
+
+        candidates.sort(key=lambda x: x[0], reverse=True)
         results = []
-        for i in top_indices:
-            score = float(row_vector[i])
-            if score > 0:
-                results.append({
-                    "term": self.feature_names[i],
-                    "tfidf_score": round(score, 4)
-                })
+        for crit_score, tfidf, idf_val, term in candidates[:top_n]:
+            results.append({
+                "term": term,
+                "tfidf_score": round(float(tfidf), 4),
+                "idf": round(float(idf_val), 2),
+                "rarity": "Critical" if idf_val >= 5.0 else "High"
+            })
         return results
 
-    def _explain_pair(self, idx_a, idx_b, top_n=5):
+    def _explain_pair(self, idx_a, idx_b, top_n=4):
         """
-        Explains why movie B is similar to movie A using component-wise TF-IDF dot products.
-        Score = TF-IDF_A(term) * TF-IDF_B(term)
+        Explains why movie B is similar to movie A using component-wise TF-IDF dot products,
+        specifically filtering for rare and critical shared thematic terms.
         """
         vec_a = self.tfidf_matrix[idx_a].toarray().flatten()
         vec_b = self.tfidf_matrix[idx_b].toarray().flatten()
+        idf = self.vectorizer.idf_
 
         shared_scores = vec_a * vec_b
-        top_shared_indices = shared_scores.argsort()[::-1][:top_n]
+        GENERIC_TAGS = {
+            "action", "drama", "thriller", "adventure", "sci-fi", "scifi", "comedy",
+            "crime", "romance", "action adventure", "adventure thriller", "action scifi",
+            "thriller action", "crime drama", "scifi action"
+        }
+
+        scored_shared = []
+        for i in range(len(shared_scores)):
+            if shared_scores[i] > 0:
+                term = self.feature_names[i]
+                if term not in GENERIC_TAGS and len(term) > 2:
+                    crit_contribution = float(shared_scores[i] * (idf[i] ** 1.2))
+                    scored_shared.append((crit_contribution, shared_scores[i], vec_a[i], vec_b[i], term))
+
+        scored_shared.sort(key=lambda x: x[0], reverse=True)
 
         shared_terms = []
-        for i in top_shared_indices:
-            score = float(shared_scores[i])
-            if score > 0:
-                shared_terms.append({
-                    "term": self.feature_names[i],
-                    "weight_a": round(float(vec_a[i]), 4),
-                    "weight_b": round(float(vec_b[i]), 4),
-                    "contribution": round(score, 4)
-                })
+        for crit_contrib, raw_score, w_a, w_b, term in scored_shared[:top_n]:
+            shared_terms.append({
+                "term": term,
+                "weight_a": round(float(w_a), 4),
+                "weight_b": round(float(w_b), 4),
+                "contribution": round(float(raw_score), 4)
+            })
         return shared_terms
 
     def _generate_one_line_reason(self, source_row, target_row, shared_terms):
