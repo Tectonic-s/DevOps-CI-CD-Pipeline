@@ -8,7 +8,14 @@ import os
 from flask import Flask, render_template, request, jsonify
 from recommender import MovieRecommender
 
-app = Flask(__name__)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+app = Flask(
+    __name__,
+    template_folder=os.path.join(BASE_DIR, "templates"),
+    static_folder=os.path.join(BASE_DIR, "static"),
+    static_url_path="/static",
+)
 
 # Initialize recommendation engine
 print("Initializing TF-IDF Movie Recommendation Engine...")
@@ -150,7 +157,7 @@ def get_stats():
 
 @app.route("/health", methods=["GET"])
 def health_check():
-    """Liveness and readiness probe for Docker and CI/CD pipelines."""
+    """Health and readiness probe endpoint."""
     is_ready = recommender is not None and getattr(recommender, "df", None) is not None and not recommender.df.empty
     status_code = 200 if is_ready else 503
     return jsonify({

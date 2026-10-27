@@ -15,7 +15,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 class MovieRecommender:
     def __init__(self, dataset_path=None):
         if dataset_path is None:
-            dataset_path = os.path.join(os.path.dirname(__file__), "data", "movies.csv")
+            dataset_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "movies.csv")
         self.dataset_path = dataset_path
         self.df = None
         self.vectorizer = None

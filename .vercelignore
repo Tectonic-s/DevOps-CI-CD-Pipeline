@@ -1,0 +1,21 @@
+# Local virtual environments
+.venv/
+venv/
+env/
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Git & IDEs
+.git/
+.github/
+.vscode/
+.idea/
+.DS_Store
+
+# Documentation & presentation notes
+PRESENTATION.md
+tests/
+run.sh

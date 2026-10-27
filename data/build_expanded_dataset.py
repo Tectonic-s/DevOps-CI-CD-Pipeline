@@ -1988,6 +1988,277 @@ EXPANDED_MOVIES = [
         "rating": 8.2, "runtime": 321,
         "overview": "A multi-generational blood feud between three crime families in the coal-rich town of Wasseypur spans six decades, filled with betrayal, revenge, gunfire, and power struggles.",
         "keywords": "anurag kashyap sardar khan faizal khan nawazuddin siddiqui manoj bajpayee ramadhir singh coal mafia bihar revenge guns cult classic"
+    },
+    # --- ADDITIONAL ICONIC TAMIL, REGIONAL & GLOBAL BLOCKBUSTERS ---
+    {
+        "title": "Thuppakki", "year": 2012,
+        "genres": "Action, Crime, Thriller",
+        "director": "A.R. Murugadoss",
+        "cast": "Thalapathy Vijay, Kajal Aggarwal, Vidyut Jammwal, Sathyan",
+        "rating": 8.1, "runtime": 165,
+        "overview": "An Indian Army intelligence officer on vacation in Mumbai tracks down and eliminates a lethal network of dormant sleeper cells planning multiple bomb blasts across the city.",
+        "keywords": "thalapathy vijay jagadish captain army intelligence sleeper cells bomb blast 12 men shoot out vidyut jammwal mumbai ar murugadoss mass military thriller"
+    },
+    {
+        "title": "Kaththi", "year": 2014,
+        "genres": "Action, Drama",
+        "director": "A.R. Murugadoss",
+        "cast": "Thalapathy Vijay, Samantha Ruth Prabhu, Neil Nitin Mukesh, Sathish",
+        "rating": 8.1, "runtime": 166,
+        "overview": "A criminal lookalike escapes prison and impersonates a social activist fighting a greedy multinational corporation attempting to seize rural agricultural land and water resources.",
+        "keywords": "thalapathy vijay kathiresan jeevanandham farmer water corporate greed coin fight press conference media monologue pipeline ar murugadoss anirudh mass message"
+    },
+    {
+        "title": "Mankatha", "year": 2011,
+        "genres": "Action, Crime, Thriller",
+        "director": "Venkat Prabhu",
+        "cast": "Ajith Kumar, Arjun Sarja, Trisha Krishnan, Anjali, Andrea Jeremiah",
+        "rating": 7.7, "runtime": 155,
+        "overview": "A suspended, corrupt police officer joins a gang of ambitious young criminals to hijack a 500-crore betting money container during the IPL cricket season.",
+        "keywords": "ajith kumar thala vinayak mahadev cricket betting 500 crore heist money lust no rules game venkat prabhu salt and pepper look dark hero betrayal"
+    },
+    {
+        "title": "Nayakan", "year": 1987,
+        "genres": "Crime, Drama",
+        "director": "Mani Ratnam",
+        "cast": "Kamal Haasan, Saranya Ponvannan, Janagaraj, Vijayan, Delhi Ganesh",
+        "rating": 8.7, "runtime": 156,
+        "overview": "A destitute Tamil orphan flees to Bombay, where he rises to become a revered underworld godfather defending slum dwellers against police brutality and rival mafia dons.",
+        "keywords": "kamal haasan velu naicker bombay slum godfather mani ratnam nallavara kettavara ilaiyaraaja classic cinema dharavi legend"
+    },
+    {
+        "title": "Thalapathi", "year": 1991,
+        "genres": "Action, Crime, Drama",
+        "director": "Mani Ratnam",
+        "cast": "Superstar Rajinikanth, Mammootty, Shobana, Arvind Swamy, Bhanupriya",
+        "rating": 8.5, "runtime": 157,
+        "overview": "Surya, an abandoned child raised in the slums, bonds with local Robin Hood-style underworld don Deva in an unbreakable friendship, inspired by the Karna and Duryodhana dynamic.",
+        "keywords": "rajinikanth surya mammootty deva mani ratnam friendship karna duryodhana sun god brother collector arvind swamy rakkamma ilaiyaraaja epic"
+    },
+    {
+        "title": "Chandramukhi", "year": 2005,
+        "genres": "Comedy, Horror, Mystery",
+        "director": "P. Vasu",
+        "cast": "Superstar Rajinikanth, Jyothika, Prabhu, Nayanthara, Vadivelu",
+        "rating": 7.2, "runtime": 166,
+        "overview": "A psychiatrist visits an ancestral mansion inhabited by an extended family to treat a relative suffering from split personality disorder who believes she is a vengeful dancer named Chandramukhi.",
+        "keywords": "rajinikanth saravanan psychiatrist jyothika split personality chandramukhi ra ra vadivelu comedy ghost palace snake padachappa horror mass classic"
+    },
+    {
+        "title": "Padayappa", "year": 1999,
+        "genres": "Action, Drama",
+        "director": "K.S. Ravikumar",
+        "cast": "Superstar Rajinikanth, Sivaji Ganesan, Ramya Krishnan, Soundarya, Abbas",
+        "rating": 8.2, "runtime": 181,
+        "overview": "An energetic mechanical engineer is disinherited by greedy relatives but rebuilds his fortune through granite mining, sparking a decades-long rivalry with an arrogant, vengeful woman.",
+        "keywords": "rajinikanth padayappa ramya krishnan neelambari granite hill swing scene mass dialogue ar rahman classic family drama revenge pride"
+    },
+    {
+        "title": "Maharaja", "year": 2024,
+        "genres": "Action, Crime, Drama, Thriller",
+        "director": "Nithilan Saminathan",
+        "cast": "Vijay Sethupathi, Anurag Kashyap, Mamta Mohandas, Natty, Abhirami",
+        "rating": 8.5, "runtime": 140,
+        "overview": "A quiet salon barber arrives at a police station reporting that his dustbin named 'Lakshmi' has been stolen from his house, triggering a dark investigation that unveils a devastating crime and non-linear revenge.",
+        "keywords": "vijay sethupathi maharaja lakshmi dustbin police station non linear timeline twist revenge anurag kashyap barber emotional father daughter bond"
+    },
+    {
+        "title": "Karnan", "year": 2021,
+        "genres": "Action, Drama",
+        "director": "Mari Selvaraj",
+        "cast": "Dhanush, Lal, Rajisha Vijayan, Yogi Babu, Natty",
+        "rating": 8.1, "runtime": 158,
+        "overview": "In a remote village denied a basic bus stop, a fearless young man named Karnan takes up arms on horseback to defend the dignity and lives of his oppressed community against police atrocity.",
+        "keywords": "dhanush karnan mari selvaraj village bus stop sword horse decapitation oppressive police podiyankulam folklore fish symbolism rebellion"
+    },
+    {
+        "title": "Pariyerum Perumal", "year": 2018,
+        "genres": "Drama",
+        "director": "Mari Selvaraj",
+        "cast": "Kathir, Anandhi, Yogi Babu, G. Marimuthu",
+        "rating": 8.7, "runtime": 154,
+        "overview": "An idealistic youth from a marginalized caste enrolls in a prestigious law college hoping to become a lawyer, but faces brutal systemic humiliation and honor killings.",
+        "keywords": "mari selvaraj karuppi dog caste discrimination law college friendship anandhi tea glass equality social realism powerful masterpiece"
+    },
+    {
+        "title": "Viduthalai Part 1", "year": 2023,
+        "genres": "Action, Crime, Drama",
+        "director": "Vetrimaaran",
+        "cast": "Soori, Vijay Sethupathi, Bhavani Sre, Gautham Vasudev Menon, Rajiv Menon",
+        "rating": 8.2, "runtime": 150,
+        "overview": "A newly recruited idealistic police constable is stationed at an authoritarian paramilitary camp hunting for the elusive rebel leader Vaathiyar, testing his conscience against state brutality.",
+        "keywords": "vetrimaaran soori kumaresan vijay sethupathi vaathiyar makkal padai western ghats police camp train derailment opening single shot human rights"
+    },
+    {
+        "title": "Salaar: Part 1 - Ceasefire", "year": 2023,
+        "genres": "Action, Crime, Drama, Thriller",
+        "director": "Prashanth Neel",
+        "cast": "Prabhas, Prithviraj Sukumaran, Shruti Haasan, Jagapathi Babu, Bobby Simha",
+        "rating": 6.5, "runtime": 175,
+        "overview": "In the sovereign city-state of Khansaar, a prince faces a deadly coup and calls upon his exiled childhood friend Deva, an unstoppable killing machine who swore never to fight again.",
+        "keywords": "prabhas deva salaar prithviraj varadharaja mannar khansaar tribes cease fire prashanth neel dark tone black coal mass elevation violence"
+    },
+    {
+        "title": "Hanu-Man", "year": 2024,
+        "genres": "Action, Adventure, Fantasy, Sci-Fi",
+        "director": "Prasanth Varma",
+        "cast": "Teja Sajja, Amritha Aiyer, Varalaxmi Sarathkumar, Vinay Rai",
+        "rating": 7.8, "runtime": 158,
+        "overview": "In the fictional village of Anjanadri, a petty thief gains superpowers through a divine gem infused with the blood of Lord Hanuman, rising to defend his village against a high-tech supervillain.",
+        "keywords": "hanuman teja sajja anjanadri divine gem superpowers solar eclipse prasanth varma indian superhero hindu mythology sling shot visual effects"
+    },
+    {
+        "title": "Jawan", "year": 2023,
+        "genres": "Action, Thriller",
+        "director": "Atlee",
+        "cast": "Shah Rukh Khan, Nayanthara, Vijay Sethupathi, Deepika Padukone, Priyamani",
+        "rating": 7.0, "runtime": 169,
+        "overview": "A man driven by a personal vendetta enlists a group of female inmates in high-profile hostage heists across India, while confronting an unscrupulous arms dealer from his forgotten past.",
+        "keywords": "shah rukh khan srk vikram rathore azad metro hijack women army atlee nayanthara vijay sethupathi kalee farmer suicide voting rights mass"
+    },
+    {
+        "title": "Pathaan", "year": 2023,
+        "genres": "Action, Adventure, Thriller",
+        "director": "Siddharth Anand",
+        "cast": "Shah Rukh Khan, Deepika Padukone, John Abraham, Dimple Kapadia, Salman Khan",
+        "rating": 5.9, "runtime": 146,
+        "overview": "An exiled RAW field operative returns to duty to stop Outfit X, a rogue mercenary group led by a former Indian agent planning a catastrophic biological weapon attack on India.",
+        "keywords": "shah rukh khan pathaan raw agent jim john abraham deepika rubai tiger cameo train fight jet pack ice chase biological weapon spy universe"
+    },
+    {
+        "title": "Brahmāstra: Part One – Shiva", "year": 2022,
+        "genres": "Action, Adventure, Fantasy, Sci-Fi",
+        "director": "Ayan Mukerji",
+        "cast": "Ranbir Kapoor, Alia Bhatt, Amitabh Bachchan, Nagarjuna Akkineni, Mouni Roy",
+        "rating": 5.5, "runtime": 167,
+        "overview": "A DJ named Shiva discovers that he possesses a strange immunity to fire and holds the key to awakening the Brahmāstra, the supreme weapon of the gods.",
+        "keywords": "ranbir kapoor shiva agnyastra astraverse brahmashirsha guru ashram nandi astra vanarastra fire powers hindu mythology visual effects"
+    },
+    {
+        "title": "Tumbbad", "year": 2018,
+        "genres": "Drama, Fantasy, Horror, Mystery",
+        "director": "Rahi Anil Barve, Anand Gandhi",
+        "cast": "Sohum Shah, Jyoti Malshe, Anita Date-Kelkar, Ronjini Chakraborty",
+        "rating": 8.2, "runtime": 104,
+        "overview": "A greedy man in rural Maharashtra searches for a cursed treasure guarded by Hastar, an ancient demonic entity in the womb of the Mother Goddess, unleashing generational ruin.",
+        "keywords": "hastar greed gold coins grandmother monster cursed treasure rain atmosphere womb flour dough horror folk mythology cinematic masterpiece"
+    },
+    {
+        "title": "Sholay", "year": 1975,
+        "genres": "Action, Adventure, Comedy, Drama",
+        "director": "Ramesh Sippy",
+        "cast": "Dharmendra, Amitabh Bachchan, Sanjeev Kumar, Hema Malini, Amjad Khan",
+        "rating": 8.1, "runtime": 198,
+        "overview": "After his family is murdered by the notorious dacoit Gabbar Singh, a retired police officer enlists two charismatic petty ex-convicts to capture the bandit.",
+        "keywords": "gabbar singh jai veeru thakur basanti kitne aadmi the ramgarh dacoit curry western coin toss classic indian all time greatest"
+    },
+    {
+        "title": "Swades", "year": 2004,
+        "genres": "Drama",
+        "director": "Ashutosh Gowariker",
+        "cast": "Shah Rukh Khan, Gayatri Joshi, Kishori Ballal, Rajesh Vivek",
+        "rating": 8.2, "runtime": 195,
+        "overview": "A successful NASA project manager returns to an Indian village to find his childhood nanny, and is deeply transformed by the community's struggles, building a micro-hydroelectric power plant.",
+        "keywords": "shah rukh khan mohan bhargava nasa scientist kaveri amma charanpur water turbine village electricity patriotism ar rahman social reform"
+    },
+    {
+        "title": "PK", "year": 2014,
+        "genres": "Comedy, Drama, Sci-Fi",
+        "director": "Rajkumar Hirani",
+        "cast": "Aamir Khan, Anushka Sharma, Sushant Singh Rajput, Boman Irani, Sanjay Dutt",
+        "rating": 8.1, "runtime": 153,
+        "overview": "An innocent humanoid alien stranded on Earth loses his spaceship remote control, and his naive questions challenge dogmatic religious superstitions and blind faith in India.",
+        "keywords": "aamir khan alien pk wrong number religious godman remote control radio paan anushka sharma jaggu rajkumar hirani satire innocence"
+    },
+    {
+        "title": "Taare Zameen Par", "year": 2007,
+        "genres": "Drama, Family",
+        "director": "Aamir Khan, Amole Gupte",
+        "cast": "Darsheel Safary, Aamir Khan, Tisca Chopra, Vipin Sharma",
+        "rating": 8.3, "runtime": 165,
+        "overview": "An eight-year-old boy labeled lazy and troubled due to unrecognized dyslexia is sent to a boarding school, where an unconventional art teacher helps him discover his inner brilliance.",
+        "keywords": "ishaan awasthi darsheel safary dyslexia ram shankar nikumbh aamir khan boarding school painting competition maa emotional education empathy"
+    },
+    {
+        "title": "Godzilla Minus One", "year": 2023,
+        "genres": "Action, Adventure, Drama, Horror, Sci-Fi",
+        "director": "Takashi Yamazaki",
+        "cast": "Ryunosuke Kamiki, Minami Hamabe, Yuki Yamada, Munetaka Aoki",
+        "rating": 7.9, "runtime": 124,
+        "overview": "Post-war Japan is at its lowest point when a gigantic atomic beast appears off the coast, forcing a traumatized former kamikaze pilot and civilian survivors to defend Tokyo without a military.",
+        "keywords": "godzilla atomic breath post world war two japan kamikaze pilot ginza attack civilian navy minesweeper oscar winner emotional kaiju"
+    },
+    {
+        "title": "Demon Slayer: Mugen Train", "year": 2020,
+        "genres": "Animation, Action, Adventure, Fantasy",
+        "director": "Haruo Sotozaki",
+        "cast": "Natsuki Hanae, Akari Kito, Hiro Shimono, Satoshi Hino, Akira Ishida",
+        "rating": 8.2, "runtime": 117,
+        "overview": "Tanjiro and the Demon Slayer Corps join the powerful Flame Hashira Kyojuro Rengoku aboard the infinite Mugen Train to face a nightmare-inducing demon and Upper Rank Three Akaza.",
+        "keywords": "tanjiro rengoku flame hashira set your heart ablaze akaza upper rank mugen train demon slayer anime ufotable masterpiece"
+    },
+    {
+        "title": "Jujutsu Kaisen 0", "year": 2021,
+        "genres": "Animation, Action, Fantasy",
+        "director": "Sunghoo Park",
+        "cast": "Megumi Ogata, Kana Hanazawa, Mikako Komatsu, Yuichi Nakamura",
+        "rating": 7.8, "runtime": 105,
+        "overview": "Yuta Okkotsu, a high schooler haunted by the monstrous cursed spirit of his childhood friend Rika, enrolls in Tokyo Jujutsu High under Satoru Gojo to master his curse.",
+        "keywords": "yuta okkotsu rika special grade curse satoru gojo suguru geto night parade of a hundred demons black flash tokyo jujutsu high anime"
+    },
+    {
+        "title": "The Boy and the Heron", "year": 2023,
+        "genres": "Animation, Adventure, Drama, Family, Fantasy",
+        "director": "Hayao Miyazaki",
+        "cast": "Soma Santoki, Masaki Suda, Aimyon, Yoshino Kimura",
+        "rating": 7.5, "runtime": 124,
+        "overview": "During World War II in Japan, a grieving boy guided by a mysterious talking gray heron enters a fantastical tower linking the world of the living and the dead.",
+        "keywords": "hayao miyazaki studio ghibli talking heron tower magical realm parakeet king warawara grief mother fantasy oscar winner"
+    },
+    {
+        "title": "World War Z", "year": 2013,
+        "genres": "Action, Adventure, Horror, Sci-Fi, Thriller",
+        "director": "Marc Forster",
+        "cast": "Brad Pitt, Mireille Enos, Daniella Kertesz, James Badge Dale",
+        "rating": 7.0, "runtime": 116,
+        "overview": "Former United Nations investigator Gerry Lane travels the world in a race against time to stop a fast-moving, rabid zombie pandemic that is toppling armies and governments.",
+        "keywords": "fast zombies brad pitt jerusalem wall swarm un investigator aircraft carrier camouflage pathogen pandemic global survival"
+    },
+    {
+        "title": "The Meg", "year": 2018,
+        "genres": "Action, Horror, Sci-Fi, Thriller",
+        "director": "Jon Turteltaub",
+        "cast": "Jason Statham, Li Bingbing, Rainn Wilson, Cliff Curtis",
+        "rating": 5.7, "runtime": 113,
+        "overview": "A deep-sea rescue diver is recruited to save the crew of a sunken submersible trapped at the bottom of the Mariana Trench by a 75-foot prehistoric shark: the Megalodon.",
+        "keywords": "megalodon giant shark mariana trench deep sea jason statham sanya bay beach attack underwater research prehistoric predator"
+    },
+    {
+        "title": "A Quiet Place: Day One", "year": 2024,
+        "genres": "Drama, Horror, Sci-Fi",
+        "director": "Michael Sarnoski",
+        "cast": "Lupita Nyong'o, Joseph Quinn, Alex Wolff, Djimon Hounsou",
+        "rating": 6.3, "runtime": 99,
+        "overview": "A terminally ill young woman and her cat navigate the chaotic and deafening collapse of New York City during the catastrophic arrival of sound-hunting extraterrestrial predators.",
+        "keywords": "new york invasion sound monsters silence frodo the cat patsies pizza subway flooding survival acoustic horror"
+    },
+    {
+        "title": "Kill", "year": 2024,
+        "genres": "Action, Crime, Thriller",
+        "director": "Nikhil Nagesh Bhat",
+        "cast": "Lakshya, Raghav Juyal, Tanya Maniktala, Abhishek Chauhan",
+        "rating": 7.6, "runtime": 105,
+        "overview": "When a squad of armed bandits storms a New Delhi-bound express passenger train, an off-duty NSG commando turns the cramped train carriages into an unrelenting bloodbath.",
+        "keywords": "express train bandit siege nsg commando lakshya fani raghav juyal brutal close quarters martial arts hammer knife visceral gore action"
+    },
+    {
+        "title": "Monkey Man", "year": 2024,
+        "genres": "Action, Thriller",
+        "director": "Dev Patel",
+        "cast": "Dev Patel, Sharlto Copley, Pitobash, Vipin Sharma, Sikandar Kher",
+        "rating": 6.9, "runtime": 121,
+        "overview": "An anonymous young man wearing a gorilla mask wages a bloody underground campaign of vengeance against the corrupt elite who murdered his mother and destroyed his childhood village.",
+        "keywords": "dev patel monkey mask underground fight club hanuman temple elite kitchen fight tuk tuk chase trans community allies brutal revenge action"
     }
 ]
 

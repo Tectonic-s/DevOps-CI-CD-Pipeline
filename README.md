@@ -1,6 +1,6 @@
 # 🎬 CineMatch AI — Movie Recommendation System Using TF-IDF Algorithm
 
-A modern, full-stack Python application that implements a **Content-Based Movie Recommendation System** powered by **Natural Language Processing (NLP)**, **TF-IDF Vectorization**, and **Cosine Similarity**, paired with a dark-mode **Glassmorphic Web Interface**.
+A modern, full-stack Python web application that implements a **Content-Based Movie Recommendation System** powered by **Natural Language Processing (NLP)**, **TF-IDF Vectorization**, and **Cosine Similarity**, paired with a dark-mode **Glassmorphic Web Interface**. Fully configured for seamless **Vercel** serverless deployment.
 
 ---
 
@@ -62,49 +62,54 @@ $$\text{Cosine Similarity}(\mathbf{u}, \mathbf{v}) = \sum_{t \in V} u_t v_t$$
 
 ```
 Movie-Recommender/
+├── api/
+│   └── index.py               # Vercel Serverless Function entry point
 ├── app.py                     # Flask application & RESTful API routes
 ├── recommender.py             # TF-IDF Engine, Vectorizer, and Explainability Logic
-├── requirements.txt           # Project dependencies
-├── run.sh                     # Quick start launch script
+├── vercel.json                # Vercel deployment & URL rewrite routing
+├── .vercelignore              # Deployment exclusion rules
+├── requirements.txt           # Lean Python dependencies for Vercel
+├── run.sh                     # Quick start local launch script
+├── PRESENTATION.md            # Slide-by-slide presentation deck notes
 ├── data/
-│   ├── build_dataset.py       # Script to generate curated 100-movie rich dataset
-│   └── movies.csv             # Movie dataset with metadata, synopses, and posters
+│   ├── build_expanded_dataset.py # Script to rebuild/expand movie dataset
+│   └── movies.csv             # 247+ movie dataset with authentic IMDb posters
 ├── static/
 │   ├── css/
 │   │   └── style.css          # Glassmorphic dark design system & responsive layout
 │   └── js/
 │       └── app.js             # Client application logic, search, and state
-└── templates/
-    └── index.html             # Single-Page Web Application template
+├── templates/
+│   └── index.html             # Single-Page Web Application template
+└── tests/
+    ├── test_recommender.py    # Unit tests for TF-IDF algorithm and explainability
+    └── test_api.py            # Integration tests for REST API endpoints
 ```
 
 ---
 
-## 🚀 Quick Start Guide
+## 🚀 Quick Start Guide (Local Development)
 
 ### 1. Prerequisites
 - Python 3.9+ (Python 3.10, 3.11, 3.12, 3.13, 3.14 supported)
 - `pip` package manager
 
 ### 2. Setup & Run Using `run.sh`
-The fastest way to run the project is using the automated launch script:
+The fastest way to run the project locally is using the automated launch script:
 ```bash
 ./run.sh
 ```
 
 ### 3. Manual Setup (Alternative)
 ```bash
-# 1. Create virtual environment
+# 1. Create and activate virtual environment
 python3 -m venv .venv
 source .venv/bin/activate
 
 # 2. Install dependencies
 pip install -r requirements.txt
 
-# 3. Generate dataset (if not already present)
-python3 data/build_dataset.py
-
-# 4. Start Flask server
+# 3. Start Flask server
 python3 app.py
 ```
 
@@ -115,12 +120,44 @@ http://127.0.0.1:5001
 
 ---
 
+## ☁️ Vercel Deployment
+
+This project is pre-configured for one-click or CLI deployment on **Vercel** via Serverless Python Functions.
+
+### Option A: Deploy via GitHub (Recommended)
+1. Push your repository to GitHub:
+   ```bash
+   git add .
+   git commit -m "Configure project for Vercel serverless deployment"
+   git push origin main
+   ```
+2. Go to [vercel.com](https://vercel.com) and click **"Add New Project"**.
+3. Import your GitHub repository.
+4. Vercel automatically detects the Python runtime, `api/index.py`, and `vercel.json`.
+5. Click **Deploy**. Your app will be live with a free SSL `.vercel.app` URL!
+
+### Option B: Deploy via Vercel CLI
+1. Install Vercel CLI globally (if not already installed):
+   ```bash
+   npm install -g vercel
+   ```
+2. Log in and deploy from project directory:
+   ```bash
+   vercel
+   ```
+3. For production deployment:
+   ```bash
+   vercel --prod
+   ```
+
+---
+
 ## 🔌 REST API Endpoints
 
 | Method | Endpoint | Description |
 |---|---|---|
 | `GET` | `/` | Serves the web UI |
-| `GET` | `/health` | Container liveness and readiness health check probe |
+| `GET` | `/health` | Application liveness and health check probe |
 | `GET` | `/api/movies` | Returns full list of movies for client-side search |
 | `GET` | `/api/movie/<id>` | Returns metadata + top TF-IDF terms for a movie |
 | `GET` | `/api/recommend?movie_id=1&top_n=8&genre=All&min_rating=7.0` | Recommends movies similar to `movie_id` with explainability |
@@ -134,50 +171,6 @@ http://127.0.0.1:5001
 
 Run the automated test suite with pytest:
 ```bash
+source .venv/bin/activate
 pytest -v
 ```
-
----
-
-## 🐳 Docker Deployment
-
-### 1. Build and Run via Docker
-```bash
-# Build the image
-docker build -t movie-recommender:latest .
-
-# Run container with production Gunicorn WSGI
-docker run -d -p 5001:5001 --name cinematch_app movie-recommender:latest
-
-# Check health probe
-curl http://localhost:5001/health
-```
-
-### 2. Using Docker Compose
-```bash
-docker compose up -d
-docker compose logs -f
-```
-
----
-
-## 🚀 CI/CD Pipeline (Jenkins + Ansible)
-
-### 1. Jenkins Pipeline (`Jenkinsfile`)
-The pipeline runs through the following stages:
-1. **Checkout SCM**: Fetches source code from Git repository.
-2. **Lint & Unit Tests**: Installs dependencies and runs `pytest` with JUnit XML report archiving.
-3. **Build Docker Image**: Builds container image tagged with `BUILD_NUMBER` and `GIT_COMMIT`.
-4. **Push Docker Image**: Authenticates with container registry and pushes the image.
-5. **Deploy via Ansible**: Executes Ansible playbook targeting `staging` or `production`.
-
-### 2. Ansible Automated Deployment (`ansible/`)
-Deploy or rollback the container on remote hosts:
-```bash
-# Deploy to staging
-ansible-playbook -i ansible/inventory.ini ansible/deploy.yml -e "target_env=staging"
-
-# Rollback if needed
-ansible-playbook -i ansible/inventory.ini ansible/rollback.yml -e "target_env=staging"
-```
-
