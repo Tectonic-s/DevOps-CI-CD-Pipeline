@@ -19,3 +19,10 @@ __pycache__/
 PRESENTATION.md
 tests/
 run.sh
+
+# DevOps local files
+Dockerfile
+docker-compose.yml
+Jenkinsfile
+ansible/
+.dockerignore

@@ -1,6 +1,6 @@
 /**
  * app.js - Client-Side Controller for CineMatch AI
- * Single-flow search, instant TF-IDF recommendations, visual feature attribution, and search visualizer toggle.
+ * Smart Computing using Python - TF-IDF Vector Space Model & Cosine Similarity Inspector
  */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ratingValDisplay: document.getElementById("rating-val-display"),
         filterTopN: document.getElementById("filter-top-n"),
 
-        // Requested "Visualize Search" Toggle
+        // "Visualize Search" Toggle
         btnToggleVisualize: document.getElementById("btn-toggle-visualize"),
         visualizeToggleIndicator: document.getElementById("visualize-toggle-indicator"),
         visualMathPanel: document.getElementById("visual-math-panel"),
@@ -54,7 +54,11 @@ document.addEventListener("DOMContentLoaded", () => {
         recommendationsGrid: document.getElementById("recommendations-grid"),
 
         // Header & Watchlist Drawer
-        headerMovieCount: document.getElementById("header-movie-count"),
+        headerMatrixShape: document.getElementById("header-matrix-shape"),
+        dashMatrixDim: document.getElementById("dash-matrix-dim"),
+        dashSparsityVal: document.getElementById("dash-sparsity-val"),
+        btnOpenAlgoBlueprint: document.getElementById("btn-open-algo-blueprint"),
+        btnQuickAlgoView: document.getElementById("btn-quick-algo-view"),
         btnOpenWatchlist: document.getElementById("btn-open-watchlist"),
         watchlistCountBadge: document.getElementById("watchlist-count"),
         watchlistDrawerBackdrop: document.getElementById("watchlist-drawer-backdrop"),
@@ -63,7 +67,18 @@ document.addEventListener("DOMContentLoaded", () => {
         watchlistGrid: document.getElementById("watchlist-grid"),
         btnClearWatchlist: document.getElementById("btn-clear-watchlist"),
 
-        // Modal & Toast
+        // Modals
+        blueprintModal: document.getElementById("blueprint-modal"),
+        btnCloseBlueprintModal: document.getElementById("btn-close-blueprint-modal"),
+        blueprintRareTerms: document.getElementById("blueprint-rare-terms"),
+        blueprintCommonTerms: document.getElementById("blueprint-common-terms"),
+
+        vectorMathModal: document.getElementById("vector-math-modal"),
+        btnCloseMathModal: document.getElementById("btn-close-math-modal"),
+        mathPairBanner: document.getElementById("math-pair-banner"),
+        mathBreakdownTbody: document.getElementById("math-breakdown-tbody"),
+        mathFormulaSummary: document.getElementById("math-formula-summary"),
+
         brandLogoBtn: document.getElementById("brand-logo-btn"),
         movieModal: document.getElementById("movie-modal"),
         modalContent: document.getElementById("modal-content"),
@@ -91,9 +106,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await res.json();
             if (data.status === "success") {
                 state.allMovies = data.movies;
-                if (elements.headerMovieCount) {
-                    elements.headerMovieCount.textContent = data.count || data.movies.length;
-                }
             }
         } catch (err) {
             console.error("Failed to load movies:", err);
@@ -108,6 +120,17 @@ document.addEventListener("DOMContentLoaded", () => {
             if (data.status === "success") {
                 state.corpusStats = data.stats;
                 populateGenreFilter(data.stats.genres || []);
+
+                // Populate dashboard and header metrics
+                if (elements.headerMatrixShape) {
+                    elements.headerMatrixShape.textContent = `ℝ²⁴⁷ ˣ ⁵⁰⁰⁰`;
+                }
+                if (elements.dashMatrixDim) {
+                    elements.dashMatrixDim.textContent = `${data.stats.total_movies} × ${data.stats.vocab_size.toLocaleString()}`;
+                }
+                if (elements.dashSparsityVal && data.stats.sparsity_percent) {
+                    elements.dashSparsityVal.textContent = `${data.stats.sparsity_percent}%`;
+                }
             }
         } catch (err) {
             console.error("Failed to fetch stats:", err);
@@ -126,7 +149,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ==========================================
-    // CORE SEARCH EXECUTION LOGIC (BUG-FREE)
+    // SEARCH EXECUTION LOGIC
     // ==========================================
 
     function handleSearchInput(rawQuery) {
@@ -139,20 +162,19 @@ document.addEventListener("DOMContentLoaded", () => {
         // Close dropdown
         elements.autocompleteResults.classList.remove("active");
 
-        // 1. Try exact or close match in allMovies
+        // Try exact or substring match in allMovies
         const lower = query.toLowerCase();
         const found = state.allMovies.find(m => m.title.toLowerCase() === lower) ||
                       state.allMovies.find(m => m.title.toLowerCase().startsWith(lower)) ||
                       state.allMovies.find(m => m.title.toLowerCase().includes(lower));
 
         if (found) {
-            // Found a specific movie in dataset -> recommend based on it
             state.activeSearchMode = "movie";
             updateQuickPickActive(found.id);
             loadSourceMovieAndRecommend(found.id);
             elements.searchInput.value = found.title;
         } else {
-            // Free-text natural language story/plot search
+            // Free-text natural language vector search
             state.activeSearchMode = "prompt";
             executePromptVectorSearch(query);
         }
@@ -178,7 +200,7 @@ document.addEventListener("DOMContentLoaded", () => {
         state.activeSearchMode = "movie";
 
         if (elements.sourceMovieCard) {
-            elements.sourceMovieCard.style.display = "flex";
+            elements.sourceMovieCard.style.display = "grid";
         }
 
         // Fetch Movie Details
@@ -217,7 +239,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (movie.top_keywords && movie.top_keywords.length > 0) {
             elements.srcTfidfTerms.innerHTML = movie.top_keywords.slice(0, 8).map(k => `
                 <div class="tfidf-tag" title="Term Frequency x Inverse Document Frequency: ${k.tfidf_score}">
-                    ${k.term} <span>${k.tfidf_score}</span>
+                    ${k.term} <span>w=${k.tfidf_score}</span>
                 </div>
             `).join("");
         } else {
@@ -225,10 +247,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (elements.resultsHeading) {
-            elements.resultsHeading.textContent = `Films Similar to "${movie.title}"`;
+            elements.resultsHeading.innerHTML = `Vector Space Recommendations for "<strong>${movie.title}</strong>"`;
         }
         if (elements.resultsSubheading) {
-            elements.resultsSubheading.textContent = `Ranked by Cosine Similarity using TF-IDF across narrative synopsis, director (${movie.director}), and themes.`;
+            elements.resultsSubheading.textContent = `Ranked by angular cosine distance cos(θ) = u · v in ℝ⁵⁰⁰⁰ based on synopsis, director (${movie.director}), and themes.`;
         }
     }
 
@@ -240,7 +262,7 @@ document.addEventListener("DOMContentLoaded", () => {
         elements.recommendationsGrid.innerHTML = `
             <div class="empty-state">
                 <i class="fa-solid fa-spinner fa-spin empty-icon"></i>
-                <p>Computing 5,000-dimensional TF-IDF vectors and cosine angles...</p>
+                <p>Computing 5,000-dimensional TF-IDF vectors and cosine dot products...</p>
             </div>
         `;
 
@@ -253,7 +275,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 state.currentRecommendations = data.recommendations;
                 renderMovieCards(elements.recommendationsGrid, data.recommendations);
 
-                // Smoothly scroll to results so user sees similar movies below search
+                // Smoothly scroll down so user sees similar movies below search
                 if (elements.sourceMovieCard && elements.sourceMovieCard.style.display !== "none") {
                     elements.sourceMovieCard.scrollIntoView({ behavior: "smooth", block: "start" });
                 }
@@ -277,30 +299,30 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ==========================================
-    // PROMPT / STORY VECTOR SEARCH
+    // PROMPT FREE-TEXT VECTOR SEARCH
     // ==========================================
 
     async function executePromptVectorSearch(prompt) {
-        const topN = elements.filterTopN.value;
-        const genre = elements.filterGenre.value;
-        const minRating = elements.filterRating.value;
-
-        // Hide source movie banner for free-text search
+        state.activeSearchMode = "prompt";
         if (elements.sourceMovieCard) {
             elements.sourceMovieCard.style.display = "none";
         }
 
+        const topN = elements.filterTopN.value;
+        const genre = elements.filterGenre.value;
+        const minRating = elements.filterRating.value;
+
         if (elements.resultsHeading) {
-            elements.resultsHeading.textContent = `Vector Search Results for: "${prompt}"`;
+            elements.resultsHeading.innerHTML = `Vector Search Results for "<strong>${prompt}</strong>"`;
         }
         if (elements.resultsSubheading) {
-            elements.resultsSubheading.textContent = `Closest geometric alignments in TF-IDF term space ranked by angular cosine distance.`;
+            elements.resultsSubheading.textContent = `Closest geometric alignments in TF-IDF term space ranked by angular cosine distance cos(θ).`;
         }
 
         elements.recommendationsGrid.innerHTML = `
             <div class="empty-state">
                 <i class="fa-solid fa-spinner fa-spin empty-icon"></i>
-                <p>Vectorizing prompt query and calculating cosine similarity...</p>
+                <p>Vectorizing prompt query and calculating cosine similarity in ℝ⁵⁰⁰⁰...</p>
             </div>
         `;
 
@@ -320,9 +342,8 @@ document.addEventListener("DOMContentLoaded", () => {
             if (data.status === "success" && data.recommendations.length > 0) {
                 state.currentRecommendations = data.recommendations;
                 renderMovieCards(elements.recommendationsGrid, data.recommendations);
-                showToast(`Found ${data.recommendations.length} matching films`);
+                showToast(`Found ${data.recommendations.length} matching films in vector space`);
 
-                // Smoothly scroll to recommendations
                 if (elements.recommendationsSection) {
                     elements.recommendationsSection.scrollIntoView({ behavior: "smooth", block: "start" });
                 }
@@ -330,7 +351,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 elements.recommendationsGrid.innerHTML = `
                     <div class="empty-state">
                         <i class="fa-solid fa-magnifying-glass empty-icon"></i>
-                        <p>No films matched the prompt "${prompt}". Try broader keywords like "space", "robot", "action", "mafia".</p>
+                        <p>No films matched the prompt "${prompt}". Try broader terms like "space", "robot", "action", "mafia".</p>
                     </div>
                 `;
             }
@@ -383,12 +404,12 @@ document.addEventListener("DOMContentLoaded", () => {
             const isBookmarked = state.watchlist.some(m => m.id === movie.id);
             const genres = movie.genres ? movie.genres.split(",").slice(0, 3) : [];
             const similarityPercent = movie.similarity_percent !== undefined ? movie.similarity_percent : (movie.cosine_similarity ? (movie.cosine_similarity * 100).toFixed(1) : 0);
+            const cosScore = movie.similarity_score !== undefined ? movie.similarity_score : (similarityPercent / 100).toFixed(4);
             const isHighMatch = similarityPercent >= 15.0;
 
             // Visual Feature Attribution (How Similarity Was Found)
             let visualHowFoundHtml = "";
             if (movie.shared_terms && movie.shared_terms.length > 0) {
-                // Find highest contribution for relative bar width
                 const maxContrib = Math.max(...movie.shared_terms.map(t => t.contribution || 0.01), 0.01);
 
                 const termsHtml = movie.shared_terms.slice(0, 6).map(t => {
@@ -409,8 +430,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 visualHowFoundHtml = `
                     <div class="how-found-box ${state.visualizeSearch ? 'visible' : 'hidden'}">
                         <div class="how-found-header">
-                            <i class="fa-solid fa-dna"></i>
-                            <span>How Similarity Was Found:</span>
+                            <i class="fa-solid fa-square-root-variable"></i>
+                            <span>Vector Dot Product Contributions (w_A × w_B):</span>
                         </div>
                         <div class="feature-contrib-list">
                             ${termsHtml}
@@ -418,12 +439,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 `;
             } else if (movie.matched_terms && movie.matched_terms.length > 0) {
-                // For prompt search
                 visualHowFoundHtml = `
                     <div class="how-found-box ${state.visualizeSearch ? 'visible' : 'hidden'}">
                         <div class="how-found-header">
                             <i class="fa-solid fa-bullseye"></i>
-                            <span>Matched Query Terms:</span>
+                            <span>Matched Query N-Grams:</span>
                         </div>
                         <div class="shared-terms-chips" style="margin-top:0.5rem;">
                             ${movie.matched_terms.map(t => `<span class="shared-term-chip">${t}</span>`).join("")}
@@ -439,7 +459,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     <div class="movie-card-poster-wrap">
                         <img src="${movie.poster_url || 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80'}" alt="${movie.title}" class="movie-card-poster" loading="lazy">
                         <div class="similarity-badge ${isHighMatch ? 'high-match' : ''}">
-                            <i class="fa-solid fa-chart-simple"></i> ${similarityPercent}% Match
+                            <i class="fa-solid fa-square-root-variable"></i> cos(θ) = ${cosScore} (${similarityPercent}%)
                         </div>
                         <button class="btn-bookmark-card ${isBookmarked ? 'bookmarked' : ''}" data-id="${movie.id}" title="${isBookmarked ? 'Remove from Watchlist' : 'Save to Watchlist'}">
                             <i class="${isBookmarked ? 'fa-solid' : 'fa-regular'} fa-bookmark"></i>
@@ -467,11 +487,14 @@ document.addEventListener("DOMContentLoaded", () => {
                         ${visualHowFoundHtml}
 
                         <div class="movie-card-actions">
-                            <button class="btn-card-action primary btn-inspect" data-id="${movie.id}">
+                            <button class="btn-card-action primary btn-inspect" data-id="${movie.id}" title="View details">
                                 <i class="fa-regular fa-file-lines"></i> Details
                             </button>
-                            <button class="btn-card-action btn-find-similar" data-id="${movie.id}">
-                                <i class="fa-solid fa-compass"></i> Find Similar
+                            <button class="btn-card-action btn-inspect-vector-math" data-id="${movie.id}" title="Inspect component-wise dot product">
+                                <i class="fa-solid fa-calculator"></i> Vector Math
+                            </button>
+                            <button class="btn-card-action btn-find-similar" data-id="${movie.id}" title="Use as anchor">
+                                <i class="fa-solid fa-compass"></i> Similar
                             </button>
                         </div>
                     </div>
@@ -489,47 +512,53 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         container.querySelectorAll(".btn-inspect").forEach(btn => {
-            btn.addEventListener("click", (e) => {
-                e.stopPropagation();
+            btn.addEventListener("click", () => {
                 const id = parseInt(btn.dataset.id);
                 openMovieModal(id);
             });
         });
 
+        container.querySelectorAll(".btn-inspect-vector-math").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const id = parseInt(btn.dataset.id);
+                openVectorMathModal(state.currentSourceId, id);
+            });
+        });
+
         container.querySelectorAll(".btn-find-similar").forEach(btn => {
-            btn.addEventListener("click", (e) => {
-                e.stopPropagation();
+            btn.addEventListener("click", () => {
                 const id = parseInt(btn.dataset.id);
                 updateQuickPickActive(id);
                 loadSourceMovieAndRecommend(id);
-                window.scrollTo({ top: elements.sourceMovieCard.offsetTop - 80, behavior: "smooth" });
+                elements.searchInput.value = "";
             });
         });
     }
 
     // ==========================================
-    // AUTOCOMPLETE & SEARCH INPUT HANDLING
+    // AUTOCOMPLETE DROPDOWN
     // ==========================================
 
     elements.searchInput.addEventListener("input", (e) => {
         const query = e.target.value.trim().toLowerCase();
         if (query.length > 0) {
             elements.btnClearSearch.style.display = "block";
-            const matches = state.allMovies.filter(m => 
-                m.title.toLowerCase().includes(query) || 
-                (m.director && m.director.toLowerCase().includes(query)) ||
-                (m.genres && m.genres.toLowerCase().includes(query)) ||
-                (m.cast && m.cast.toLowerCase().includes(query))
-            ).slice(0, 8);
-
-            renderAutocompleteDropdown(matches);
         } else {
             elements.btnClearSearch.style.display = "none";
-            elements.autocompleteResults.classList.remove("active");
         }
+
+        if (query.length < 2) {
+            elements.autocompleteResults.classList.remove("active");
+            return;
+        }
+
+        const matches = state.allMovies
+            .filter(m => m.title.toLowerCase().includes(query) || (m.director && m.director.toLowerCase().includes(query)))
+            .slice(0, 7);
+
+        renderAutocompleteDropdown(matches);
     });
 
-    // Enter Key Search Trigger
     elements.searchInput.addEventListener("keydown", (e) => {
         if (e.key === "Enter") {
             e.preventDefault();
@@ -537,12 +566,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Search Button Click
     elements.btnSearchSubmit.addEventListener("click", () => {
         handleSearchInput();
     });
 
-    // Clear Search Button
     elements.btnClearSearch.addEventListener("click", () => {
         elements.searchInput.value = "";
         elements.btnClearSearch.style.display = "none";
@@ -551,13 +578,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     function renderAutocompleteDropdown(matches) {
-        if (!matches || matches.length === 0) {
+        if (matches.length === 0) {
             elements.autocompleteResults.innerHTML = `
-                <div class="autocomplete-item no-match" style="cursor:default;">
-                    <div class="autocomplete-info">
-                        <h4>Press Enter to search vector space for "${elements.searchInput.value}"</h4>
-                        <p>Will match story plot and themes automatically</p>
-                    </div>
+                <div class="autocomplete-item empty">
+                    <span>No exact title match. Press <kbd>Enter</kbd> to execute free-text vector search</span>
                 </div>
             `;
             elements.autocompleteResults.classList.add("active");
@@ -568,67 +592,96 @@ document.addEventListener("DOMContentLoaded", () => {
             <div class="autocomplete-item" data-id="${movie.id}">
                 <img src="${movie.poster_url}" alt="${movie.title}" class="autocomplete-poster">
                 <div class="autocomplete-info">
-                    <h4>${movie.title} (${movie.year})</h4>
-                    <p>${movie.genres} • Dir: ${movie.director}</p>
+                    <span class="autocomplete-title">${movie.title}</span>
+                    <span class="autocomplete-meta">${movie.year} • ${movie.director || 'N/A'} • ★ ${movie.rating}</span>
                 </div>
             </div>
         `).join("");
 
         elements.autocompleteResults.classList.add("active");
 
-        elements.autocompleteResults.querySelectorAll(".autocomplete-item").forEach(item => {
+        elements.autocompleteResults.querySelectorAll(".autocomplete-item:not(.empty)").forEach(item => {
             item.addEventListener("click", () => {
                 const id = parseInt(item.dataset.id);
-                if (id) {
-                    elements.searchInput.value = "";
-                    elements.btnClearSearch.style.display = "none";
-                    elements.autocompleteResults.classList.remove("active");
+                const sel = state.allMovies.find(m => m.id === id);
+                if (sel) {
+                    elements.searchInput.value = sel.title;
                     updateQuickPickActive(id);
                     loadSourceMovieAndRecommend(id);
                 }
+                elements.autocompleteResults.classList.remove("active");
             });
         });
     }
 
-    // Close autocomplete on click outside
     document.addEventListener("click", (e) => {
-        if (!elements.searchInput.contains(e.target) && !elements.autocompleteResults.contains(e.target)) {
+        if (!e.target.closest(".search-box-wrapper")) {
             elements.autocompleteResults.classList.remove("active");
         }
     });
 
-    // Quick pick chips
-    elements.quickPickChips.querySelectorAll(".chip").forEach(chip => {
-        chip.addEventListener("click", () => {
-            elements.quickPickChips.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
-            chip.classList.add("active");
-            const id = parseInt(chip.dataset.id);
-            loadSourceMovieAndRecommend(id);
+    // Quick Pick Chips
+    if (elements.quickPickChips) {
+        elements.quickPickChips.querySelectorAll(".chip").forEach(chip => {
+            chip.addEventListener("click", () => {
+                const id = parseInt(chip.dataset.id);
+                updateQuickPickActive(id);
+                loadSourceMovieAndRecommend(id);
+                const movie = state.allMovies.find(m => m.id === id);
+                if (movie) elements.searchInput.value = movie.title;
+            });
         });
+    }
+
+    // ==========================================
+    // FILTER CONTROLS & "VISUALIZE SEARCH" TOGGLE
+    // ==========================================
+
+    elements.filterGenre.addEventListener("change", () => {
+        if (state.activeSearchMode === "movie") {
+            fetchRecommendations();
+        } else {
+            executePromptVectorSearch(elements.searchInput.value.trim());
+        }
     });
 
-    // ==========================================
-    // "VISUALIZE SEARCH" TOGGLE IMPLEMENTATION
-    // ==========================================
+    elements.filterTopN.addEventListener("change", () => {
+        if (state.activeSearchMode === "movie") {
+            fetchRecommendations();
+        } else {
+            executePromptVectorSearch(elements.searchInput.value.trim());
+        }
+    });
 
+    elements.filterRating.addEventListener("input", (e) => {
+        elements.ratingValDisplay.textContent = parseFloat(e.target.value).toFixed(1);
+    });
+
+    elements.filterRating.addEventListener("change", () => {
+        if (state.activeSearchMode === "movie") {
+            fetchRecommendations();
+        } else {
+            executePromptVectorSearch(elements.searchInput.value.trim());
+        }
+    });
+
+    // "Visualize Search" Toggle
     elements.btnToggleVisualize.addEventListener("click", () => {
         state.visualizeSearch = !state.visualizeSearch;
-
+        
         if (state.visualizeSearch) {
             elements.btnToggleVisualize.classList.add("active");
             elements.visualizeToggleIndicator.textContent = "ON";
             elements.visualizeToggleIndicator.className = "toggle-pill on";
             if (elements.visualMathPanel) elements.visualMathPanel.style.display = "block";
-            showToast("Visual Vector DNA & Term Contributions: Enabled");
         } else {
             elements.btnToggleVisualize.classList.remove("active");
             elements.visualizeToggleIndicator.textContent = "OFF";
             elements.visualizeToggleIndicator.className = "toggle-pill off";
             if (elements.visualMathPanel) elements.visualMathPanel.style.display = "none";
-            showToast("Visual Vector DNA: Disabled");
         }
 
-        // Toggle visibility of the "how-found-box" on all rendered cards
+        // Toggle visibility of how-found-box on all rendered cards
         document.querySelectorAll(".how-found-box").forEach(box => {
             if (state.visualizeSearch) {
                 box.classList.remove("hidden");
@@ -640,33 +693,200 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // Filter Controls
-    elements.filterGenre.addEventListener("change", () => {
-        if (state.activeSearchMode === "movie") fetchRecommendations();
-        else handleSearchInput();
-    });
+    // ==========================================
+    // ALGORITHM BLUEPRINT MODAL
+    // ==========================================
 
-    elements.filterTopN.addEventListener("change", () => {
-        if (state.activeSearchMode === "movie") fetchRecommendations();
-        else handleSearchInput();
-    });
+    function openBlueprintModal() {
+        if (!elements.blueprintModal) return;
+        elements.blueprintModal.style.display = "flex";
 
-    elements.filterRating.addEventListener("input", (e) => {
-        elements.ratingValDisplay.textContent = parseFloat(e.target.value).toFixed(1);
-    });
+        if (state.corpusStats) {
+            // Render High IDF rare terms
+            if (elements.blueprintRareTerms && state.corpusStats.sample_high_idf_terms) {
+                elements.blueprintRareTerms.innerHTML = state.corpusStats.sample_high_idf_terms.map(t => `
+                    <div class="idf-pill">
+                        ${t.term} <span>IDF: ${t.idf}</span>
+                    </div>
+                `).join("");
+            }
 
-    elements.filterRating.addEventListener("change", () => {
-        if (state.activeSearchMode === "movie") fetchRecommendations();
-        else handleSearchInput();
-    });
+            // Render Low IDF common terms
+            if (elements.blueprintCommonTerms && state.corpusStats.sample_common_terms) {
+                elements.blueprintCommonTerms.innerHTML = state.corpusStats.sample_common_terms.map(t => `
+                    <div class="idf-pill">
+                        ${t.term} <span>IDF: ${t.idf}</span>
+                    </div>
+                `).join("");
+            }
+        }
+    }
+
+    if (elements.btnOpenAlgoBlueprint) {
+        elements.btnOpenAlgoBlueprint.addEventListener("click", openBlueprintModal);
+    }
+    if (elements.btnQuickAlgoView) {
+        elements.btnQuickAlgoView.addEventListener("click", openBlueprintModal);
+    }
+    if (elements.btnCloseBlueprintModal) {
+        elements.btnCloseBlueprintModal.addEventListener("click", () => {
+            elements.blueprintModal.style.display = "none";
+        });
+    }
+    if (elements.blueprintModal) {
+        elements.blueprintModal.addEventListener("click", (e) => {
+            if (e.target === elements.blueprintModal) {
+                elements.blueprintModal.style.display = "none";
+            }
+        });
+    }
 
     // ==========================================
-    // WATCHLIST DRAWER FUNCTIONALITY
+    // PAIRWISE VECTOR MATH MODAL (DOT PRODUCT)
     // ==========================================
+
+    async function openVectorMathModal(sourceId, targetId) {
+        if (!elements.vectorMathModal) return;
+        elements.vectorMathModal.style.display = "flex";
+
+        elements.mathPairBanner.innerHTML = `
+            <div style="text-align:center; width:100%; padding:1rem;">
+                <i class="fa-solid fa-spinner fa-spin" style="font-size:1.5rem; color:var(--accent-mint);"></i>
+                <p style="margin-top:0.5rem; font-size:0.85rem;">Calculating component-wise TF-IDF dot product in ℝ⁵⁰⁰⁰...</p>
+            </div>
+        `;
+        elements.mathBreakdownTbody.innerHTML = '';
+        elements.mathFormulaSummary.innerHTML = '';
+
+        try {
+            const res = await fetch(`/api/explain?movie_a=${sourceId}&movie_b=${targetId}`);
+            const data = await res.json();
+
+            if (data.status === "success") {
+                renderVectorMathModal(data);
+            } else {
+                elements.mathPairBanner.innerHTML = `<p class="text-muted">${data.message || 'Error comparing vectors.'}</p>`;
+            }
+        } catch (err) {
+            console.error("Vector math error:", err);
+            elements.mathPairBanner.innerHTML = `<p class="text-muted">Failed to load vector math breakdown.</p>`;
+        }
+    }
+
+    function renderVectorMathModal(data) {
+        const totalCosine = data.cosine_similarity;
+        const totalPercent = data.similarity_percent;
+
+        elements.mathPairBanner.innerHTML = `
+            <div>
+                <span class="text-xs uppercase text-muted font-bold">Pairwise Comparison</span>
+                <div class="pair-film-name">${data.movie_a.title} &nbsp;⟷&nbsp; ${data.movie_b.title}</div>
+            </div>
+            <div style="text-align:right;">
+                <span class="text-xs uppercase text-muted font-bold">Cosine Inner Product</span>
+                <div class="pair-math-score">cos(θ) = ${totalCosine} (${totalPercent}%)</div>
+            </div>
+        `;
+
+        if (!data.shared_terms || data.shared_terms.length === 0) {
+            elements.mathBreakdownTbody.innerHTML = `
+                <tr>
+                    <td colspan="5" style="text-align:center; padding:1.5rem; color:var(--text-muted);">
+                        No high-magnitude shared n-grams found in the top component vectors.
+                    </td>
+                </tr>
+            `;
+            elements.mathFormulaSummary.innerHTML = `Cosine distance computed: cos(θ) = ${totalCosine}. Films share generic corpus narrative tokens.`;
+            return;
+        }
+
+        let totalContrib = 0;
+        const rowsHtml = data.shared_terms.map(t => {
+            const wA = t.weight_a !== undefined ? t.weight_a : '—';
+            const wB = t.weight_b !== undefined ? t.weight_b : '—';
+            const contrib = t.contribution;
+            totalContrib += contrib;
+            const pctOfCosine = totalCosine > 0 ? ((contrib / totalCosine) * 100).toFixed(1) : '0';
+
+            return `
+                <tr>
+                    <td><strong><code>${t.term}</code></strong></td>
+                    <td><span style="font-family:'JetBrains Mono';">${wA}</span></td>
+                    <td><span style="font-family:'JetBrains Mono';">${wB}</span></td>
+                    <td><strong style="color:var(--accent-mint); font-family:'JetBrains Mono';">+${contrib}</strong></td>
+                    <td><span class="text-muted">${pctOfCosine}%</span></td>
+                </tr>
+            `;
+        }).join("");
+
+        elements.mathBreakdownTbody.innerHTML = rowsHtml;
+
+        const capturedPct = totalCosine > 0 ? Math.min(Math.round((totalContrib / totalCosine) * 100), 100) : 0;
+        elements.mathFormulaSummary.innerHTML = `
+            <strong>Mathematical Summary:</strong> The inner product across all 5,000 dimensions evaluates to <code>cos(θ) = u · v = ${totalCosine}</code>. 
+            The top ${data.shared_terms.length} shared dimensions shown above account for <strong>${capturedPct}%</strong> of the total angular affinity between <em>${data.movie_a.title}</em> and <em>${data.movie_b.title}</em>.
+        `;
+    }
+
+    if (elements.btnCloseMathModal) {
+        elements.btnCloseMathModal.addEventListener("click", () => {
+            elements.vectorMathModal.style.display = "none";
+        });
+    }
+    if (elements.vectorMathModal) {
+        elements.vectorMathModal.addEventListener("click", (e) => {
+            if (e.target === elements.vectorMathModal) {
+                elements.vectorMathModal.style.display = "none";
+            }
+        });
+    }
+
+    // ==========================================
+    // WATCHLIST DRAWER
+    // ==========================================
+
+    function updateWatchlistBadge() {
+        const count = state.watchlist.length;
+        if (elements.watchlistCountBadge) elements.watchlistCountBadge.textContent = count;
+        if (elements.drawerWatchlistCount) elements.drawerWatchlistCount.textContent = count;
+        if (elements.btnClearWatchlist) {
+            elements.btnClearWatchlist.style.display = count > 0 ? "inline-flex" : "none";
+        }
+    }
+
+    function toggleWatchlist(movieId) {
+        const idx = state.watchlist.findIndex(m => m.id === movieId);
+        if (idx >= 0) {
+            state.watchlist.splice(idx, 1);
+            showToast("Removed from Watchlist");
+        } else {
+            const movie = state.allMovies.find(m => m.id === movieId) ||
+                          state.currentRecommendations.find(m => m.id === movieId) ||
+                          (state.currentMovieData && state.currentMovieData.id === movieId ? state.currentMovieData : null);
+            if (movie) {
+                state.watchlist.push(movie);
+                showToast(`Saved "${movie.title}" to Watchlist`);
+            }
+        }
+
+        localStorage.setItem("cinematch_watchlist", JSON.stringify(state.watchlist));
+        updateWatchlistBadge();
+
+        // Update card bookmark buttons in UI
+        document.querySelectorAll(`.btn-bookmark-card[data-id="${movieId}"]`).forEach(btn => {
+            const isBookmarked = state.watchlist.some(m => m.id === movieId);
+            btn.className = `btn-bookmark-card ${isBookmarked ? 'bookmarked' : ''}`;
+            btn.querySelector("i").className = isBookmarked ? 'fa-solid fa-bookmark' : 'fa-regular fa-bookmark';
+        });
+
+        if (elements.watchlistDrawerBackdrop.style.display === "flex") {
+            renderWatchlistDrawer();
+        }
+    }
 
     elements.btnOpenWatchlist.addEventListener("click", () => {
-        renderWatchlistDrawer();
         elements.watchlistDrawerBackdrop.style.display = "flex";
+        renderWatchlistDrawer();
     });
 
     elements.btnCloseWatchlist.addEventListener("click", () => {
@@ -679,51 +899,25 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    function toggleWatchlist(movieId) {
-        const movie = state.allMovies.find(m => m.id === movieId);
-        if (!movie) return;
-
-        const idx = state.watchlist.findIndex(m => m.id === movieId);
-        if (idx > -1) {
-            state.watchlist.splice(idx, 1);
-            showToast(`Removed "${movie.title}" from watchlist`);
-        } else {
-            state.watchlist.push(movie);
-            showToast(`Added "${movie.title}" to watchlist`);
-        }
-
-        localStorage.setItem("cinematch_watchlist", JSON.stringify(state.watchlist));
-        updateWatchlistBadge();
-
-        // Update card buttons
-        document.querySelectorAll(`.btn-bookmark-card[data-id="${movieId}"]`).forEach(btn => {
-            const isSaved = state.watchlist.some(m => m.id === movieId);
-            btn.className = `btn-bookmark-card ${isSaved ? 'bookmarked' : ''}`;
-            btn.querySelector("i").className = isSaved ? 'fa-solid fa-bookmark' : 'fa-regular fa-bookmark';
+    if (elements.btnClearWatchlist) {
+        elements.btnClearWatchlist.addEventListener("click", () => {
+            if (confirm("Clear all movies from your watchlist?")) {
+                state.watchlist = [];
+                localStorage.setItem("cinematch_watchlist", "[]");
+                updateWatchlistBadge();
+                renderWatchlistDrawer();
+                showToast("Watchlist cleared");
+            }
         });
-
-        if (elements.watchlistDrawerBackdrop.style.display === "flex") {
-            renderWatchlistDrawer();
-        }
-    }
-
-    function updateWatchlistBadge() {
-        const count = state.watchlist.length;
-        if (elements.watchlistCountBadge) elements.watchlistCountBadge.textContent = count;
-        if (elements.drawerWatchlistCount) elements.drawerWatchlistCount.textContent = count;
-        if (elements.btnClearWatchlist) {
-            elements.btnClearWatchlist.style.display = count > 0 ? "inline-flex" : "none";
-        }
     }
 
     function renderWatchlistDrawer() {
         if (!elements.watchlistGrid) return;
-
         if (state.watchlist.length === 0) {
             elements.watchlistGrid.innerHTML = `
                 <div class="empty-state">
                     <i class="fa-regular fa-bookmark empty-icon"></i>
-                    <p>Your watchlist is currently empty. Bookmark any movie to save it here.</p>
+                    <p>Your watchlist is currently empty. Click the bookmark icon on any film card to save it.</p>
                 </div>
             `;
             return;
@@ -732,27 +926,15 @@ document.addEventListener("DOMContentLoaded", () => {
         renderMovieCards(elements.watchlistGrid, state.watchlist);
     }
 
-    if (elements.btnClearWatchlist) {
-        elements.btnClearWatchlist.addEventListener("click", () => {
-            if (confirm("Clear all items from your watchlist?")) {
-                state.watchlist = [];
-                localStorage.removeItem("cinematch_watchlist");
-                updateWatchlistBadge();
-                renderWatchlistDrawer();
-                showToast("Watchlist cleared");
-            }
-        });
-    }
-
     // ==========================================
-    // MOVIE DETAILS MODAL
+    // MOVIE DETAIL MODAL
     // ==========================================
 
     async function openMovieModal(movieId) {
-        elements.movieModal.classList.add("active");
+        elements.movieModal.style.display = "flex";
         elements.modalContent.innerHTML = `
             <div style="grid-column: 1 / -1; padding: 3rem; text-align: center; color: var(--text-secondary);">
-                <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem; color: var(--accent-gold);"></i>
+                <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem; color: var(--accent-mint);"></i>
                 <p>Loading film vectors and metadata...</p>
             </div>
         `;
@@ -775,11 +957,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const keywordsHtml = movie.top_keywords && movie.top_keywords.length > 0 ? `
             <div class="modal-section">
-                <h4>Top TF-IDF Salient Keywords</h4>
+                <h4>Top TF-IDF Salient Features in $\\vec{v}$</h4>
                 <div class="tfidf-tags-list">
                     ${movie.top_keywords.map(k => `
                         <div class="tfidf-tag" title="TF-IDF Weight: ${k.tfidf_score}">
-                            ${k.term} <span>${k.tfidf_score}</span>
+                            ${k.term} <span>w=${k.tfidf_score}</span>
                         </div>
                     `).join("")}
                 </div>
@@ -791,7 +973,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <img src="${movie.poster_url}" alt="${movie.title}" class="modal-poster">
                 <div style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
                     <button class="btn-primary" id="modal-find-similar-btn" style="width: 100%;">
-                        <i class="fa-solid fa-compass"></i> Find Similar Films
+                        <i class="fa-solid fa-compass"></i> Use as Anchor Film
                     </button>
                     <button class="btn-secondary" id="modal-bookmark-btn" style="width: 100%;">
                         <i class="${isBookmarked ? 'fa-solid' : 'fa-regular'} fa-bookmark"></i>
@@ -804,7 +986,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="modal-meta-row">
                     <span>${movie.year}</span>
                     <span class="meta-dot"></span>
-                    <span><i class="fa-solid fa-star" style="color: var(--accent-gold);"></i> ${movie.rating}</span>
+                    <span><i class="fa-solid fa-star" style="color: #d97706;"></i> ${movie.rating}</span>
                     <span class="meta-dot"></span>
                     <span><i class="fa-regular fa-clock"></i> ${movie.runtime} min</span>
                 </div>
@@ -829,10 +1011,9 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
 
         document.getElementById("modal-find-similar-btn").addEventListener("click", () => {
-            elements.movieModal.classList.remove("active");
+            elements.movieModal.style.display = "none";
             updateQuickPickActive(movie.id);
             loadSourceMovieAndRecommend(movie.id);
-            window.scrollTo({ top: elements.sourceMovieCard.offsetTop - 80, behavior: "smooth" });
         });
 
         document.getElementById("modal-bookmark-btn").addEventListener("click", () => {
@@ -845,16 +1026,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     elements.btnCloseModal.addEventListener("click", () => {
-        elements.movieModal.classList.remove("active");
+        elements.movieModal.style.display = "none";
     });
 
     elements.movieModal.addEventListener("click", (e) => {
         if (e.target === elements.movieModal) {
-            elements.movieModal.classList.remove("active");
+            elements.movieModal.style.display = "none";
         }
     });
 
-    // Brand logo click resets to top
     if (elements.brandLogoBtn) {
         elements.brandLogoBtn.addEventListener("click", () => {
             window.scrollTo({ top: 0, behavior: "smooth" });
@@ -876,10 +1056,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function setupEventListeners() {
-        // ESC key closes modals
         document.addEventListener("keydown", (e) => {
             if (e.key === "Escape") {
-                if (elements.movieModal) elements.movieModal.classList.remove("active");
+                if (elements.movieModal) elements.movieModal.style.display = "none";
+                if (elements.blueprintModal) elements.blueprintModal.style.display = "none";
+                if (elements.vectorMathModal) elements.vectorMathModal.style.display = "none";
                 if (elements.watchlistDrawerBackdrop) elements.watchlistDrawerBackdrop.style.display = "none";
                 if (elements.autocompleteResults) elements.autocompleteResults.classList.remove("active");
             }

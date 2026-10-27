@@ -1551,6 +1551,545 @@ input[type="range"]::-webkit-slider-thumb:hover {
     color: #38bdf8;
 }
 
+/* ==========================================================================
+   Minimalist TF-IDF Algorithm Visualization & Demo System
+   ========================================================================== */
+
+/* Header Course Pill & Blueprint Button */
+.course-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.35rem 0.85rem;
+    background-color: #f0fdfa;
+    border: 1px solid rgba(15, 118, 110, 0.22);
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--accent-mint);
+}
+
+.btn-blueprint-header {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: #ffffff;
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-full);
+    font-family: var(--font-body);
+    font-size: 0.825rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: var(--transition-fast);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-blueprint-header:hover {
+    border-color: var(--accent-mint);
+    color: var(--accent-mint);
+    background-color: #f0fdfa;
+}
+
+/* 4-Stage Algorithm Pipeline Section */
+.algo-pipeline-section {
+    margin: 2rem 0;
+    padding: 1.75rem;
+    background-color: #ffffff;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.pipeline-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.pipeline-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.725rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent-mint);
+    margin-bottom: 0.25rem;
+}
+
+.pipeline-title {
+    font-family: var(--font-heading);
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.btn-link-algo {
+    background: transparent;
+    border: none;
+    color: var(--accent-mint);
+    font-family: var(--font-body);
+    font-size: 0.825rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: var(--transition-fast);
+}
+
+.btn-link-algo:hover {
+    text-decoration: underline;
+    color: var(--accent-blue-hover);
+}
+
+.pipeline-stepper {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 1.25rem;
+}
+
+.pipeline-step {
+    background-color: #f8fafc;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    transition: transform var(--transition-fast), border-color var(--transition-fast);
+}
+
+.pipeline-step:hover {
+    transform: translateY(-2px);
+    border-color: rgba(15, 118, 110, 0.3);
+    background-color: #ffffff;
+}
+
+.step-number {
+    font-family: 'Space Grotesk', monospace;
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: var(--accent-mint);
+    background-color: #ccfbf1;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-xs);
+    margin-bottom: 0.75rem;
+}
+
+.step-title {
+    font-size: 0.925rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.45rem;
+}
+
+.step-desc {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.45;
+    margin-bottom: 0.85rem;
+    flex: 1;
+}
+
+.step-code {
+    display: block;
+    background-color: #0f172a;
+    color: #5eead4;
+    padding: 0.4rem 0.65rem;
+    border-radius: var(--radius-xs);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.725rem;
+    font-weight: 500;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+/* Live TF-IDF Engine Dashboard */
+.algo-dashboard-section {
+    margin-bottom: 2.5rem;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+}
+
+.dash-card {
+    background-color: #ffffff;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 1.25rem 1.4rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition-fast);
+}
+
+.dash-card:hover {
+    border-color: var(--border-medium);
+    box-shadow: var(--shadow-card);
+}
+
+.dash-card-icon {
+    width: 40px;
+    height: 40px;
+    background-color: #f0fdfa;
+    border: 1px solid rgba(15, 118, 110, 0.2);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent-mint);
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.dash-card-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.dash-card-label {
+    font-size: 0.725rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 0.2rem;
+}
+
+.dash-card-value {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1.2;
+    margin-bottom: 0.2rem;
+}
+
+.dash-card-sub {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+/* Source Vector Indicator on Poster */
+.source-vector-indicator {
+    position: absolute;
+    bottom: 0.75rem;
+    left: 0.75rem;
+    right: 0.75rem;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: #5eead4;
+    font-family: 'Space Grotesk', monospace;
+    font-size: 0.725rem;
+    font-weight: 700;
+    padding: 0.4rem 0.65rem;
+    border-radius: var(--radius-sm);
+    text-align: center;
+    border: 1px solid rgba(94, 234, 212, 0.3);
+}
+
+.source-poster-wrap {
+    position: relative;
+}
+
+.tfidf-weights-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.65rem;
+    color: var(--accent-mint);
+    font-size: 0.825rem;
+    font-weight: 700;
+}
+
+/* Card Button for Pairwise Vector Math */
+.btn-card-action.btn-inspect-vector-math {
+    background-color: #f0fdfa;
+    border-color: rgba(15, 118, 110, 0.25);
+    color: var(--accent-mint);
+    font-weight: 700;
+}
+
+.btn-card-action.btn-inspect-vector-math:hover {
+    background-color: #ccfbf1;
+    color: #115e59;
+}
+
+/* Modals: Blueprint & Vector Math Table */
+.blueprint-card {
+    max-width: 960px;
+    width: 95%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.blueprint-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+}
+
+.blueprint-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.25rem 0.75rem;
+    background-color: #f0fdfa;
+    border: 1px solid rgba(15, 118, 110, 0.25);
+    border-radius: var(--radius-full);
+    color: var(--accent-mint);
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.blueprint-title {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 0.35rem;
+}
+
+.blueprint-subtitle {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.blueprint-sections-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 1.5rem;
+}
+
+.blueprint-box {
+    background-color: #f8fafc;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 1.4rem;
+}
+
+.blueprint-box.full-width {
+    grid-column: 1 / -1;
+}
+
+.blueprint-box-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.blueprint-box-desc {
+    font-size: 0.825rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.formula-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.formula-item {
+    background-color: #ffffff;
+    border: 1px solid var(--border-subtle);
+    border-left: 3px solid var(--accent-mint);
+    border-radius: var(--radius-xs);
+    padding: 0.75rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.formula-name {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.formula-item code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.825rem;
+    color: #0f172a;
+    font-weight: 600;
+}
+
+.formula-item small {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.code-snippet {
+    background-color: #0f172a;
+    color: #f8fafc;
+    border-radius: var(--radius-sm);
+    padding: 1.1rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.785rem;
+    line-height: 1.5;
+    overflow-x: auto;
+}
+
+.code-snippet code {
+    color: inherit;
+    font-family: inherit;
+}
+
+.idf-comparison-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.idf-column h4 {
+    font-size: 0.875rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.idf-term-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.75rem;
+}
+
+.idf-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.6rem;
+    background-color: #ffffff;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xs);
+    font-size: 0.775rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.idf-pill span {
+    color: var(--accent-mint);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+/* Pairwise Vector Math Table Modal */
+.math-modal-card {
+    max-width: 820px;
+    width: 95%;
+    max-height: 88vh;
+    overflow-y: auto;
+}
+
+.math-modal-title {
+    font-family: var(--font-heading);
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 0.35rem;
+}
+
+.math-modal-subtitle {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 1.25rem;
+}
+
+.comparison-pair-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #f0fdfa;
+    border: 1px solid rgba(15, 118, 110, 0.2);
+    border-radius: var(--radius-sm);
+    padding: 1rem 1.4rem;
+    margin-bottom: 1.25rem;
+}
+
+.pair-film-name {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.pair-math-score {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--accent-mint);
+}
+
+.math-table-wrapper {
+    overflow-x: auto;
+    margin-bottom: 1.25rem;
+}
+
+.math-breakdown-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.825rem;
+}
+
+.math-breakdown-table th {
+    background-color: #f8fafc;
+    border-bottom: 2px solid var(--border-medium);
+    padding: 0.75rem 0.85rem;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+.math-breakdown-table td {
+    padding: 0.75rem 0.85rem;
+    border-bottom: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+}
+
+.math-breakdown-table tr:hover td {
+    background-color: #f8fafc;
+}
+
+.math-formula-summary {
+    background-color: #f8fafc;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    font-size: 0.825rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
 /* Keyframes */
 @keyframes fadeIn {
     from {

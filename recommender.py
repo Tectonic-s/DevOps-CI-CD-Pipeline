@@ -141,6 +141,8 @@ class MovieRecommender:
             if score > 0:
                 shared_terms.append({
                     "term": self.feature_names[i],
+                    "weight_a": round(float(vec_a[i]), 4),
+                    "weight_b": round(float(vec_b[i]), 4),
                     "contribution": round(score, 4)
                 })
         return shared_terms
@@ -328,10 +330,21 @@ class MovieRecommender:
             for g in str(g_list).split(","):
                 all_genres.add(g.strip())
 
+        total_elements = self.tfidf_matrix.shape[0] * self.tfidf_matrix.shape[1]
+        non_zero = self.tfidf_matrix.nnz
+        sparsity = round((1.0 - (non_zero / total_elements)) * 100, 2)
+
         return {
             "total_movies": len(self.df),
             "vocab_size": len(self.feature_names),
             "matrix_shape": list(self.tfidf_matrix.shape),
+            "sparsity_percent": sparsity,
+            "non_zero_elements": int(non_zero),
+            "ngram_range": [1, 2],
+            "norm": "L2 (Euclidean Hypersphere)",
+            "sublinear_tf": True,
+            "algorithm": "Term Frequency - Inverse Document Frequency (TF-IDF)",
+            "similarity_metric": "Cosine Similarity Kernel (Angular Dot Product)",
             "genres": sorted(list(all_genres)),
             "sample_high_idf_terms": top_rare_terms,
             "sample_common_terms": most_common_terms

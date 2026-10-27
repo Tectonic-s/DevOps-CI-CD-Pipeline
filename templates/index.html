@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CineMatch AI — Intelligent Film Recommendation Engine</title>
-    <meta name="description" content="Cinematic discovery powered by high-dimensional narrative vectorization and cosine affinity. Explore transparent film connections and thematic DNA.">
+    <title>CineMatch AI — TF-IDF & Cosine Similarity Movie Recommender</title>
+    <meta name="description" content="Content-Based Movie Recommendation Engine Using TF-IDF Vector Space Model and Cosine Similarity in Python. Smart Computing using Python Mini-Package.">
     
     <!-- Google Fonts: Plus Jakarta Sans & Space Grotesk -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- FontAwesome 6 Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -18,26 +18,36 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <!-- Top Header (No tab bar) -->
+    <!-- Top Header -->
     <header class="app-header">
         <div class="header-container">
             <div class="brand-logo" id="brand-logo-btn" role="button" tabindex="0">
                 <div class="logo-mark">
-                    <i class="fa-solid fa-film"></i>
+                    <i class="fa-solid fa-square-root-variable"></i>
                 </div>
                 <div class="brand-text">
                     <span class="brand-title">CineMatch<span class="brand-accent">.AI</span></span>
-                    <span class="brand-subtitle">TF-IDF Movie Recommender</span>
+                    <span class="brand-subtitle">Smart Computing with Python • TF-IDF Recommender</span>
                 </div>
             </div>
 
             <div class="header-actions">
+                <div class="course-pill">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <span>Smart Computing Course Project</span>
+                </div>
+
                 <div class="header-stats">
-                    <div class="live-pill">
+                    <div class="live-pill" title="5,000-dimensional sparse TF-IDF matrix">
                         <span class="live-dot"></span>
-                        <span class="live-label"><strong id="header-movie-count">247</strong> Films Indexed</span>
+                        <span class="live-label">Matrix: <strong id="header-matrix-shape">ℝ²⁴⁷ ˣ ⁵⁰⁰⁰</strong></span>
                     </div>
                 </div>
+
+                <button class="btn-blueprint-header" id="btn-open-algo-blueprint" title="Inspect mathematical formulation and Python source code">
+                    <i class="fa-solid fa-code"></i>
+                    <span>Algorithm Blueprint</span>
+                </button>
 
                 <button class="watchlist-toggle-btn" id="btn-open-watchlist" title="View Saved Watchlist">
                     <i class="fa-solid fa-bookmark"></i>
@@ -50,12 +60,15 @@
 
     <!-- Main Workspace -->
     <main class="main-content">
-        <!-- Hero Search Section -->
+        <!-- Hero Search Section with Direct Algorithm Emphasis -->
         <section class="hero-section">
-            <div class="hero-kicker">Content-Based Affinity Engine</div>
-            <h1 class="hero-title">Movie Recommendation System Using TF-IDF</h1>
+            <div class="hero-kicker">
+                <i class="fa-solid fa-microchip"></i> Smart Computing using Python • Content-Based Recommendation Mini-Package
+            </div>
+            <h1 class="hero-title">Movie Recommendation Engine Using TF-IDF & Cosine Similarity</h1>
             <p class="hero-subtitle">
-                Search any movie, director, actor, or story theme. Our NLP engine computes Cosine Similarity across a 5,000-dimensional TF-IDF vector space in real-time.
+                High-dimensional NLP vector space model implemented in Python with <code>scikit-learn</code>, <code>NumPy</code>, and <code>SciPy</code>. 
+                Transforms narrative plots, director tokens, cast members, and keywords into an L2-normalized 5,000-dimensional vector space, ranking recommendations by angular cosine similarity $\cos(\theta) = \mathbf{u} \cdot \mathbf{v}$.
             </p>
 
             <!-- Search Bar Wrapper -->
@@ -77,7 +90,7 @@
 
             <!-- Quick Pick Chips -->
             <div class="quick-picks-container">
-                <span class="quick-picks-label">Curated Quick Picks:</span>
+                <span class="quick-picks-label"><i class="fa-solid fa-bolt"></i> Test Anchor Films:</span>
                 <div class="quick-pick-chips" id="quick-pick-chips">
                     <button class="chip active" data-id="1">Inception</button>
                     <button class="chip" data-id="2">Interstellar</button>
@@ -94,10 +107,105 @@
             </div>
         </section>
 
-        <!-- Active Source Movie Showcase Banner -->
+        <!-- TF-IDF Mathematical Architecture Stepper -->
+        <section class="algo-pipeline-section" aria-label="TF-IDF Algorithm Pipeline">
+            <div class="pipeline-header">
+                <div class="pipeline-title-group">
+                    <span class="pipeline-badge"><i class="fa-solid fa-diagram-project"></i> Algorithm Pipeline</span>
+                    <h2 class="pipeline-title">How the TF-IDF Vector Space Model Operates in Python</h2>
+                </div>
+                <button class="btn-link-algo" id="btn-quick-algo-view">
+                    <i class="fa-solid fa-book-open"></i> Full Mathematical Blueprint
+                </button>
+            </div>
+
+            <div class="pipeline-stepper">
+                <div class="pipeline-step">
+                    <div class="step-number">01</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Metadata Soup Synthesis</h3>
+                        <p class="step-desc">Combines weighted tokens: <strong>Director (×3)</strong>, <strong>Genres (×4)</strong>, <strong>Cast (×2)</strong>, <strong>Keywords (×2)</strong>, and <strong>Plot</strong> into a single bag-of-words document.</p>
+                        <code class="step-code">soup = (dir*3) + (gen*4) + cast + plot</code>
+                    </div>
+                </div>
+
+                <div class="pipeline-step">
+                    <div class="step-number">02</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Sublinear TF-IDF Vectorizer</h3>
+                        <p class="step-desc">Extracts unigram & bigram features. Applies sublinear term scaling $\text{TF} = 1 + \ln(\text{count})$ and downweights ubiquitous corpus terms via inverse document frequency.</p>
+                        <code class="step-code">IDF(t) = ln((1+N)/(1+DF)) + 1</code>
+                    </div>
+                </div>
+
+                <div class="pipeline-step">
+                    <div class="step-number">03</div>
+                    <div class="step-content">
+                        <h3 class="step-title">L2 Hypersphere Normalization</h3>
+                        <p class="step-desc">Normalizes each 5,000-dimensional vector onto the unit Euclidean sphere ($\|\mathbf{v}\|_2 = 1$). Eliminates film synopsis length bias.</p>
+                        <code class="step-code">v̂ = v / ||v||₂  (in ℝ⁵⁰⁰⁰)</code>
+                    </div>
+                </div>
+
+                <div class="pipeline-step">
+                    <div class="step-number">04</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Cosine Similarity Kernel</h3>
+                        <p class="step-desc">Computes angular inner product $\cos(\theta) = \mathbf{A} \cdot \mathbf{B} = \sum (w_{A,i} \times w_{B,i})$. Yields exact affinity scores in $[0, 1]$ across all 247 films.</p>
+                        <code class="step-code">cos(θ) = u · v = ∑ (TF_A × TF_B × IDF²)</code>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Live TF-IDF Engine Dashboard (Real-time Metrics from /api/stats) -->
+        <section class="algo-dashboard-section" aria-label="TF-IDF Engine Live Stats">
+            <div class="dashboard-grid">
+                <div class="dash-card">
+                    <div class="dash-card-icon"><i class="fa-solid fa-cubes"></i></div>
+                    <div class="dash-card-body">
+                        <span class="dash-card-label">Vector Space Dimension</span>
+                        <h3 class="dash-card-value" id="dash-matrix-dim">247 × 5,000</h3>
+                        <span class="dash-card-sub">SciPy Compressed Sparse Row (CSR)</span>
+                    </div>
+                </div>
+
+                <div class="dash-card">
+                    <div class="dash-card-icon"><i class="fa-solid fa-chart-line"></i></div>
+                    <div class="dash-card-body">
+                        <span class="dash-card-label">Matrix Sparsity</span>
+                        <h3 class="dash-card-value" id="dash-sparsity-val">97.8%</h3>
+                        <span class="dash-card-sub">Memory-optimized sparse matrix</span>
+                    </div>
+                </div>
+
+                <div class="dash-card">
+                    <div class="dash-card-icon"><i class="fa-solid fa-compass-drafting"></i></div>
+                    <div class="dash-card-body">
+                        <span class="dash-card-label">Distance Metric</span>
+                        <h3 class="dash-card-value">Cosine Angle $\theta$</h3>
+                        <span class="dash-card-sub">Angular orientation distance in $\mathbb{R}^{5000}$</span>
+                    </div>
+                </div>
+
+                <div class="dash-card">
+                    <div class="dash-card-icon"><i class="fa-solid fa-layer-group"></i></div>
+                    <div class="dash-card-body">
+                        <span class="dash-card-label">Feature N-Grams</span>
+                        <h3 class="dash-card-value">(1, 2) Range</h3>
+                        <span class="dash-card-sub">Unigrams & Bigrams with sublinear TF</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Active Source Movie Showcase Banner (Anchor Vector Profile) -->
         <section class="source-movie-banner" id="source-movie-card">
             <div class="source-poster-wrap">
                 <img id="src-poster" src="" alt="Selected Movie Poster" class="source-poster">
+                <div class="source-vector-indicator">
+                    <i class="fa-solid fa-crosshairs"></i> Anchor Vector $\mathbf{v}_A$
+                </div>
             </div>
             <div class="source-details">
                 <div class="source-meta-row">
@@ -113,8 +221,12 @@
                 <div class="genre-pill-list" id="src-genres"></div>
                 <p class="source-overview" id="src-overview">Overview loading...</p>
 
+                <!-- High-Weight TF-IDF Vector Terms for this Anchor Film -->
                 <div class="source-tfidf-weights">
-                    <span class="tfidf-weights-title">Anchor Thematic Weights (Top TF-IDF Vectors):</span>
+                    <div class="tfidf-weights-header">
+                        <i class="fa-solid fa-chart-column"></i>
+                        <span class="tfidf-weights-title">Anchor Film Vector Profile (Top TF-IDF Features in $\vec{v}_A$):</span>
+                    </div>
                     <div class="tfidf-tags-list" id="src-tfidf-terms"></div>
                 </div>
             </div>
@@ -124,31 +236,31 @@
         <section class="filters-container">
             <div class="filters-left">
                 <div class="filter-group">
-                    <label for="filter-genre">Genre</label>
+                    <label for="filter-genre">Genre Filter</label>
                     <select id="filter-genre" class="select-input">
                         <option value="All">All Genres</option>
                     </select>
                 </div>
                 <div class="filter-group">
-                    <label for="filter-rating">Min IMDb: <span class="rating-display-val" id="rating-val-display">0.0</span></label>
+                    <label for="filter-rating">Min Rating: <span class="rating-display-val" id="rating-val-display">0.0</span></label>
                     <input type="range" id="filter-rating" min="0" max="9.0" step="0.5" value="0.0">
                 </div>
                 <div class="filter-group">
-                    <label for="filter-top-n">Count</label>
+                    <label for="filter-top-n">Top-K Recommendations</label>
                     <select id="filter-top-n" class="select-input">
-                        <option value="4">4 Films</option>
-                        <option value="8" selected>8 Films</option>
-                        <option value="12">12 Films</option>
-                        <option value="16">16 Films</option>
+                        <option value="4">Top 4 Films</option>
+                        <option value="8" selected>Top 8 Films</option>
+                        <option value="12">Top 12 Films</option>
+                        <option value="16">Top 16 Films</option>
                     </select>
                 </div>
             </div>
 
-            <!-- Requested "Visualize Search" Toggle -->
+            <!-- "Visualize Search & Vector DNA" Toggle -->
             <div class="filters-right">
                 <button class="btn-visualize-toggle active" id="btn-toggle-visualize" title="Toggle detailed feature contribution & vector math">
-                    <i class="fa-solid fa-chart-pie"></i>
-                    <span>Visualize Search & DNA</span>
+                    <i class="fa-solid fa-calculator"></i>
+                    <span>Visualize Vector DNA & Math</span>
                     <span class="toggle-pill on" id="visualize-toggle-indicator">ON</span>
                 </button>
             </div>
@@ -160,27 +272,30 @@
                 <div class="explainer-title-group">
                     <i class="fa-solid fa-atom explainer-icon"></i>
                     <div>
-                        <h3>How Similarity Is Found (Vector Space Model)</h3>
-                        <p>Every movie is transformed into a 5,000-dimensional vector. Recommendations are ranked by the angular cosine similarity $\cos(\theta) = \sum (TF_A \times TF_B \times IDF^2)$.</p>
+                        <h3>Vector Space Model: Mathematical Component-Wise Attribution</h3>
+                        <p>
+                            Recommendations are ranked by the angular cosine similarity $\cos(\theta) = \sum_{t} \left(w_{A,t} \times w_{B,t}\right)$.
+                            Below, each card breaks down the individual term contributions pushing the affinity score higher.
+                        </p>
                     </div>
                 </div>
                 <div class="math-pills">
-                    <span class="formula-pill">$$\text{TF} = 1 + \log(\text{count})$$</span>
-                    <span class="formula-pill">$$\text{IDF} = \log\left(\frac{1+N}{1+\text{DF}}\right) + 1$$</span>
-                    <span class="formula-pill">$$\text{Cosine} = \mathbf{u} \cdot \mathbf{v}$$</span>
+                    <span class="formula-pill">$$\text{TF} = 1 + \ln(\text{count})$$</span>
+                    <span class="formula-pill">$$\text{IDF} = \ln\left(\frac{1+N}{1+\text{DF}}\right) + 1$$</span>
+                    <span class="formula-pill">$$\cos(\theta) = \mathbf{A} \cdot \mathbf{B}$$</span>
                 </div>
             </div>
         </section>
 
         <!-- Recommendations Grid Section -->
-        <section class="recommendations-section">
+        <section class="recommendations-section" id="recommendations-section">
             <div class="section-header">
                 <div>
-                    <h2 class="section-title" id="results-heading">Similar Recommended Films</h2>
-                    <p class="section-subtitle" id="results-subheading">Ranked by cosine affinity across combined textual metadata vectors</p>
+                    <h2 class="section-title" id="results-heading">Vector Space Recommendations Ranked by $\cos(\theta)$</h2>
+                    <p class="section-subtitle" id="results-subheading">Ranked by angular cosine distance across 5,000-dimensional TF-IDF textual vectors</p>
                 </div>
                 <div class="similarity-legend">
-                    <span class="legend-pill high-match"><span class="legend-dot"></span> High Affinity (&gt;15%)</span>
+                    <span class="legend-pill high-match"><span class="legend-dot"></span> Strong Alignment ($\cos(\theta) \ge 0.15$)</span>
                     <span class="legend-pill"><span class="legend-dot subtle"></span> Thematic Parallel</span>
                 </div>
             </div>
@@ -191,7 +306,7 @@
             </div>
         </section>
 
-        <!-- Watchlist Drawer / Section (Accessible via header button) -->
+        <!-- Watchlist Drawer / Section -->
         <section class="watchlist-drawer-backdrop" id="watchlist-drawer-backdrop" style="display:none;">
             <div class="watchlist-drawer">
                 <div class="watchlist-drawer-header">
@@ -220,8 +335,156 @@
         </section>
     </main>
 
-    <!-- Modal: Film Detail & Full Feature Inspection -->
-    <div class="modal-backdrop" id="movie-modal" role="dialog" aria-modal="true">
+    <!-- Modal 1: Algorithm Blueprint (Formulas, Python Code & Corpus Analytics) -->
+    <div class="modal-backdrop" id="blueprint-modal" role="dialog" aria-modal="true" style="display:none;">
+        <div class="modal-card blueprint-card">
+            <button class="modal-close-btn" id="btn-close-blueprint-modal" aria-label="Close modal">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="blueprint-content">
+                <div class="blueprint-header">
+                    <div class="blueprint-badge">
+                        <i class="fa-solid fa-graduation-cap"></i> Smart Computing using Python Mini-Package
+                    </div>
+                    <h2 class="blueprint-title">TF-IDF Vector Space Recommendation Architecture</h2>
+                    <p class="blueprint-subtitle">Detailed mathematical derivation, linear algebra formulation, and Python implementation.</p>
+                </div>
+
+                <div class="blueprint-sections-grid">
+                    <!-- Section A: Mathematical Derivation -->
+                    <div class="blueprint-box">
+                        <h3 class="blueprint-box-title"><i class="fa-solid fa-square-root-variable"></i> 1. Mathematical Formulation</h3>
+                        <p class="blueprint-box-desc">The algorithm maps unstructured textual movie metadata into a structured Euclidean vector space:</p>
+                        
+                        <div class="formula-block">
+                            <div class="formula-item">
+                                <span class="formula-name">Sublinear Term Frequency (TF):</span>
+                                <code>\text{TF}(t, d) = \begin{cases} 1 + \ln(\text{count}(t, d)) & \text{if count} > 0 \\ 0 & \text{otherwise} \end{cases}</code>
+                                <small>Dampens the influence of repeatedly occurring terms.</small>
+                            </div>
+
+                            <div class="formula-item">
+                                <span class="formula-name">Smooth Inverse Document Frequency (IDF):</span>
+                                <code>\text{IDF}(t, D) = \ln\left(\frac{1 + |D|}{1 + \text{DF}(t)}\right) + 1</code>
+                                <small>Penalizes generic words and heavily rewards distinctive narrative keywords.</small>
+                            </div>
+
+                            <div class="formula-item">
+                                <span class="formula-name">L2 Vector Normalization:</span>
+                                <code>\vec{v}_d = \frac{\mathbf{w}_d}{\|\mathbf{w}_d\|_2} = \frac{\mathbf{w}_d}{\sqrt{\sum_{i=1}^{5000} w_{d,i}^2}}</code>
+                                <small>Projects all film vectors onto the unit hypersphere in $\mathbb{R}^{5000}$.</small>
+                            </div>
+
+                            <div class="formula-item">
+                                <span class="formula-name">Cosine Similarity Metric:</span>
+                                <code>\cos(\theta) = \vec{v}_A \cdot \vec{v}_B = \sum_{i=1}^{5000} v_{A,i} \times v_{B,i} \in [0, 1]</code>
+                                <small>Computes the angular distance between two movies.</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section B: Python Implementation Snippet -->
+                    <div class="blueprint-box">
+                        <h3 class="blueprint-box-title"><i class="fa-brands fa-python"></i> 2. Python Architecture (recommender.py)</h3>
+                        <p class="blueprint-box-desc">Core vectorization pipeline using <code>scikit-learn</code> and <code>NumPy</code>:</p>
+                        
+                        <pre class="code-snippet"><code>from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
+# 1. Initialize Vectorizer with Unigram + Bigram Range
+self.vectorizer = TfidfVectorizer(
+    stop_words="english",
+    max_features=5000,
+    ngram_range=(1, 2),
+    sublinear_tf=True
+)
+
+# 2. Fit and Transform Metadata Soup into Sparse CSR Matrix
+self.tfidf_matrix = self.vectorizer.fit_transform(self.df["soup"])
+# Shape: (247, 5000)
+
+# 3. Precompute Full Pairwise Cosine Similarity Matrix
+self.cosine_sim = cosine_similarity(self.tfidf_matrix, self.tfidf_matrix)
+
+# 4. Top-K Ranking for Target Movie
+sim_scores = sorted(
+    list(enumerate(self.cosine_sim[source_idx])),
+    key=lambda x: x[1], 
+    reverse=True
+)[1:top_n+1]</code></pre>
+                    </div>
+                </div>
+
+                <!-- Section C: Live Vocabulary Analytics -->
+                <div class="blueprint-box full-width">
+                    <h3 class="blueprint-box-title"><i class="fa-solid fa-list-check"></i> 3. Corpus Vocabulary Distribution & Discriminative Terms</h3>
+                    <p class="blueprint-box-desc">Comparing terms with the highest vs lowest Inverse Document Frequency (IDF) in the 247-film corpus:</p>
+                    
+                    <div class="idf-comparison-grid">
+                        <div class="idf-column">
+                            <h4><i class="fa-solid fa-arrow-up-right-dots text-emerald"></i> High-IDF Discriminative Terms (Rare & Specific)</h4>
+                            <p class="text-muted text-xs">High informational entropy. Heavily boosts similarity when matched:</p>
+                            <div class="idf-term-pills" id="blueprint-rare-terms">
+                                <!-- Populated dynamically by JS -->
+                            </div>
+                        </div>
+
+                        <div class="idf-column">
+                            <h4><i class="fa-solid fa-arrow-down-wide-short text-amber"></i> Low-IDF Ubiquitous Terms (Common & Generic)</h4>
+                            <p class="text-muted text-xs">Present in many synopses. Downweighted to prevent spurious matches:</p>
+                            <div class="idf-term-pills" id="blueprint-common-terms">
+                                <!-- Populated dynamically by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 2: Vector Math & Dot Product Comparator Modal -->
+    <div class="modal-backdrop" id="vector-math-modal" role="dialog" aria-modal="true" style="display:none;">
+        <div class="modal-card math-modal-card">
+            <button class="modal-close-btn" id="btn-close-math-modal" aria-label="Close modal">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="math-modal-content">
+                <div class="math-modal-header">
+                    <span class="blueprint-badge"><i class="fa-solid fa-calculator"></i> Vector Dot Product Inspector</span>
+                    <h2 class="math-modal-title">Pairwise Vector Multiplication: $\mathbf{A} \cdot \mathbf{B}$</h2>
+                    <p class="math-modal-subtitle">Direct component-by-component breakdown showing how the TF-IDF dot product generates the final affinity score.</p>
+                </div>
+
+                <div class="comparison-pair-banner" id="math-pair-banner">
+                    <!-- Populated dynamically by JS -->
+                </div>
+
+                <div class="math-table-wrapper">
+                    <table class="math-breakdown-table">
+                        <thead>
+                            <tr>
+                                <th>Term / N-Gram ($t$)</th>
+                                <th>$\vec{v}_A(t)$ (Weight A)</th>
+                                <th>$\vec{v}_B(t)$ (Weight B)</th>
+                                <th>Product Contribution ($w_A \times w_B$)</th>
+                                <th>% of Cosine Score</th>
+                            </tr>
+                        </thead>
+                        <tbody id="math-breakdown-tbody">
+                            <!-- Populated dynamically by JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="math-formula-summary" id="math-formula-summary">
+                    <!-- Populated dynamically by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 3: Film Detail & Full Feature Inspection -->
+    <div class="modal-backdrop" id="movie-modal" role="dialog" aria-modal="true" style="display:none;">
         <div class="modal-card">
             <button class="modal-close-btn" id="btn-close-modal" aria-label="Close modal">
                 <i class="fa-solid fa-xmark"></i>

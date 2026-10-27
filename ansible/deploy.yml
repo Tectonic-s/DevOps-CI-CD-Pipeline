@@ -1,0 +1,86 @@
+---
+- name: Deploy CineMatch AI Docker Container
+  hosts: "{{ target_env | default('staging') }}"
+  become: true
+  vars:
+    docker_image: "{{ docker_image | default('movie-recommender') }}"
+    docker_tag: "{{ docker_tag | default('latest') }}"
+    container_name: "cinematch_app"
+    host_port: "{{ host_port | default(5001) }}"
+    container_port: "{{ container_port | default(5001) }}"
+    app_env_vars:
+      PORT: "{{ container_port }}"
+      HOST: "0.0.0.0"
+      FLASK_ENV: "production"
+
+  tasks:
+    - name: Ensure Docker service is running
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Pull new Docker image from registry
+      ansible.builtin.command:
+        cmd: "docker pull {{ docker_image }}:{{ docker_tag }}"
+      register: pull_result
+      changed_when: "'Downloaded' in pull_result.stdout or 'Pull complete' in pull_result.stdout"
+
+    - name: Check if container is already running
+      ansible.builtin.command:
+        cmd: "docker ps -q -f name=^/{{ container_name }}$"
+      register: running_container
+      changed_when: false
+
+    - name: Stop existing container gracefully
+      ansible.builtin.command:
+        cmd: "docker stop --time 10 {{ container_name }}"
+      when: running_container.stdout != ""
+      changed_when: true
+
+    - name: Check if container exists (stopped or running)
+      ansible.builtin.command:
+        cmd: "docker ps -a -q -f name=^/{{ container_name }}$"
+      register: existing_container
+      changed_when: false
+
+    - name: Remove existing container
+      ansible.builtin.command:
+        cmd: "docker rm {{ container_name }}"
+      when: existing_container.stdout != ""
+      changed_when: true
+
+    - name: Launch new CineMatch AI container
+      ansible.builtin.command:
+        cmd: >
+          docker run -d
+          --name {{ container_name }}
+          --restart unless-stopped
+          -p {{ host_port }}:{{ container_port }}
+          -e PORT={{ container_port }}
+          -e HOST=0.0.0.0
+          -e FLASK_ENV=production
+          --memory=1g
+          --cpus=1.5
+          {{ docker_image }}:{{ docker_tag }}
+      changed_when: true
+
+    - name: Wait for application to pass health check
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:{{ host_port }}/health"
+        method: GET
+        status_code: 200
+        return_content: true
+      register: health_response
+      until: health_response.status == 200 and 'healthy' in health_response.content
+      retries: 12
+      delay: 5
+
+    - name: Display health check report
+      ansible.builtin.debug:
+        msg: "✅ Deployment verification passed! Response: {{ health_response.json }}"
+
+    - name: Prune old dangling images to preserve disk space
+      ansible.builtin.command:
+        cmd: "docker image prune -f"
+      changed_when: false

@@ -1,0 +1,47 @@
+---
+- name: Rollback CineMatch AI Docker Container
+  hosts: "{{ target_env | default('staging') }}"
+  become: true
+  vars:
+    docker_image: "{{ docker_image | default('movie-recommender') }}"
+    rollback_tag: "{{ rollback_tag | default('latest') }}"
+    container_name: "cinematch_app"
+    host_port: "{{ host_port | default(5001) }}"
+    container_port: "{{ container_port | default(5001) }}"
+
+  tasks:
+    - name: Stop failed or current container
+      ansible.builtin.command:
+        cmd: "docker stop --time 5 {{ container_name }}"
+      failed_when: false
+
+    - name: Remove current container
+      ansible.builtin.command:
+        cmd: "docker rm -f {{ container_name }}"
+      failed_when: false
+
+    - name: Re-deploy previous stable image
+      ansible.builtin.command:
+        cmd: >
+          docker run -d
+          --name {{ container_name }}
+          --restart unless-stopped
+          -p {{ host_port }}:{{ container_port }}
+          -e PORT={{ container_port }}
+          -e HOST=0.0.0.0
+          -e FLASK_ENV=production
+          {{ docker_image }}:{{ rollback_tag }}
+
+    - name: Verify rollback health status
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:{{ host_port }}/health"
+        method: GET
+        status_code: 200
+      register: rollback_health
+      until: rollback_health.status == 200
+      retries: 10
+      delay: 3
+
+    - name: Rollback confirmed
+      ansible.builtin.debug:
+        msg: "⏪ Successfully rolled back CineMatch AI to {{ docker_image }}:{{ rollback_tag }}"
