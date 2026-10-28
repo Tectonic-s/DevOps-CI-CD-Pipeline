@@ -413,16 +413,27 @@ document.addEventListener("DOMContentLoaded", () => {
             .filter(w => w.trim().length > 0)
             .slice(0, 26); // Focus on first 26 words for clean visual presentation
 
-        // Extract critical, highly rare TF-IDF keywords
-        const criticalKeyterms = (sourceMovie.top_keywords || []).map(k => k.term.toLowerCase());
-        const criticalTokens = new Set();
-        criticalKeyterms.forEach(k => {
+        // Extract top discriminative TF-IDF keywords
+        const topKeyterms = (sourceMovie.top_keywords || []).map(k => k.term.toLowerCase());
+        const keyTokens = new Set();
+        topKeyterms.forEach(k => {
             k.split(/\s+/).forEach(w => {
-                if (w.length > 2 && !STOPWORDS.has(w)) {
-                    criticalTokens.add(w);
+                const cw = w.replace(/[^\w-]/g, "");
+                if (cw.length > 2 && !STOPWORDS.has(cw)) {
+                    keyTokens.add(cw);
                 }
             });
         });
+
+        // Add movie tags/keywords if present
+        if (sourceMovie.keywords) {
+            sourceMovie.keywords.toLowerCase().split(/\s+/).forEach(t => {
+                const ct = t.replace(/[^\w-]/g, "");
+                if (ct.length > 2 && !STOPWORDS.has(ct)) {
+                    keyTokens.add(ct);
+                }
+            });
+        }
 
         // Playback speed factor (0.25x = 4x slower)
         const currentSpeed = state.playbackSpeed || 0.25;
@@ -441,14 +452,14 @@ document.addEventListener("DOMContentLoaded", () => {
             `;
         }).join("");
 
-        // PHASE 2: Discard common words and keep ONLY highly rare, critical TF-IDF keywords
+        // PHASE 2: Discard grammatical stopwords and KEEP all descriptive TF-IDF keywords
         const t1Delay = Math.round(950 * speedFactor);
         const t1 = setTimeout(() => {
             elements.pillStep1.className = "anim-step-pill completed";
             elements.connector1.className = "anim-step-connector active";
             elements.pillStep2.className = "anim-step-pill active";
 
-            elements.animPhaseStatus.innerHTML = `<i class="fa-solid fa-filter text-amber"></i> Step 2: Discarding generic words & keeping ONLY rare, critical TF-IDF keywords...`;
+            elements.animPhaseStatus.innerHTML = `<i class="fa-solid fa-filter text-amber"></i> Step 2: Filtering grammatical stopwords & keeping descriptive TF-IDF keywords...`;
 
             rawWords.forEach((word, i) => {
                 const wordEvalDelay = Math.round(i * 20 * speedFactor);
@@ -456,35 +467,38 @@ document.addEventListener("DOMContentLoaded", () => {
                     const el = document.getElementById(`token-${i}`);
                     if (!el) return;
 
-                    const lower = word.toLowerCase();
-                    const isStopword = STOPWORDS.has(lower) || lower.length <= 2;
-                    
-                    // Strict filter: Keep ONLY highly rare, critical words belonging to this movie's TF-IDF features!
-                    const isCritical = !isStopword && (
-                        criticalTokens.has(lower) ||
-                        criticalKeyterms.some(kw => kw.includes(lower) || (lower.length > 4 && kw.startsWith(lower.slice(0, 4))))
-                    );
+                    const clean = word.toLowerCase().replace(/^[^\w]+|[^\w]+$/g, "");
+                    const isStopword = STOPWORDS.has(clean) || clean.length <= 2 || /^\d+$/.test(clean);
 
-                    if (isCritical) {
-                        el.classList.add("retained");
-                        el.innerHTML = `
-                            <i class="fa-solid fa-star text-amber"></i>
-                            <span class="token-word">${word}</span>
-                            <span class="token-status-tag">critical (rare)</span>
-                        `;
-                    } else if (isStopword) {
+                    if (isStopword) {
+                        // Unnecessary grammatical word is discarded
                         el.classList.add("discarded");
                         el.innerHTML = `
                             <span class="token-word">${word}</span>
                             <span class="token-status-tag"><i class="fa-solid fa-xmark"></i> stopword</span>
                         `;
                     } else {
-                        // Common / Low-IDF word is discarded!
-                        el.classList.add("discarded", "low-idf");
-                        el.innerHTML = `
-                            <span class="token-word">${word}</span>
-                            <span class="token-status-tag"><i class="fa-solid fa-xmark"></i> common</span>
-                        `;
+                        // Meaningful descriptive content word is KEPT in the TF-IDF feature space!
+                        el.classList.add("retained");
+
+                        // Check if it's a top anchor keyterm
+                        const isKey = keyTokens.has(clean) ||
+                                      topKeyterms.some(kw => kw.includes(clean) || (clean.length > 4 && kw.startsWith(clean.slice(0, 4))));
+
+                        if (isKey) {
+                            el.classList.add("key-feature");
+                            el.innerHTML = `
+                                <i class="fa-solid fa-star text-amber"></i>
+                                <span class="token-word">${word}</span>
+                                <span class="token-status-tag">TF-IDF (Key)</span>
+                            `;
+                        } else {
+                            el.innerHTML = `
+                                <i class="fa-solid fa-check text-mint"></i>
+                                <span class="token-word">${word}</span>
+                                <span class="token-status-tag">TF-IDF Kept</span>
+                            `;
+                        }
                     }
                 }, wordEvalDelay);
                 state.animationTimeouts.push(subTimer);
@@ -565,16 +579,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Mark retained chips
             document.querySelectorAll(".anim-word-token").forEach(el => {
-                const text = el.querySelector(".token-word")?.textContent?.toLowerCase() || "";
-                const isStopword = STOPWORDS.has(text) || text.length <= 2;
-                const isCritical = !isStopword && (
-                    criticalTokens.has(text) ||
-                    criticalKeyterms.some(kw => kw.includes(text) || (text.length > 4 && kw.startsWith(text.slice(0, 4))))
-                );
-                if (isCritical) {
-                    el.classList.add("retained");
-                } else {
+                const text = el.querySelector(".token-word")?.textContent?.toLowerCase().replace(/^[^\w]+|[^\w]+$/g, "") || "";
+                const isStopword = STOPWORDS.has(text) || text.length <= 2 || /^\d+$/.test(text);
+                if (isStopword) {
                     el.classList.add("discarded");
+                } else {
+                    el.classList.add("retained");
                 }
             });
 

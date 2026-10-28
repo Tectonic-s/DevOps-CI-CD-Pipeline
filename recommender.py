@@ -127,13 +127,13 @@ class MovieRecommender:
             return None
         idx = self.indices[movie_id]
         movie = self.df.iloc[idx].to_dict()
-        movie["top_keywords"] = self.get_top_keywords_for_movie(movie_id, top_n=5)
+        movie["top_keywords"] = self.get_top_keywords_for_movie(movie_id, top_n=10)
         return movie
 
-    def get_top_keywords_for_movie(self, movie_id, top_n=5, min_idf=3.6):
+    def get_top_keywords_for_movie(self, movie_id, top_n=10, min_idf=2.0):
         """
-        Returns only the most critical, highly rare TF-IDF terms for a movie.
-        Ranks candidates by TF-IDF * (IDF ** 1.3) to isolate highly discriminative vocabulary.
+        Returns the most informative, distinctive TF-IDF terms for a movie.
+        Balances high TF-IDF term weights with IDF specificity so important content words are highlighted.
         """
         if movie_id not in self.indices:
             return []
@@ -143,8 +143,7 @@ class MovieRecommender:
 
         GENERIC_TAGS = {
             "action", "drama", "thriller", "adventure", "sci-fi", "scifi", "comedy",
-            "crime", "romance", "action adventure", "adventure thriller", "action scifi",
-            "thriller action", "crime drama", "scifi action", "family", "fantasy"
+            "crime", "romance", "family", "fantasy"
         }
 
         candidates = []
@@ -152,25 +151,25 @@ class MovieRecommender:
             if row_vector[i] > 0 and idf[i] >= min_idf:
                 term = self.feature_names[i]
                 if len(term) > 2 and term not in GENERIC_TAGS:
-                    # Rare Critical Metric: TF-IDF score amplified by IDF power
-                    crit_score = float(row_vector[i] * (idf[i] ** 1.3))
-                    candidates.append((crit_score, row_vector[i], idf[i], term))
+                    # Balanced metric: term weight scaled with mild IDF boost
+                    score = float(row_vector[i] * (idf[i] ** 0.5))
+                    candidates.append((score, row_vector[i], idf[i], term))
 
         candidates.sort(key=lambda x: x[0], reverse=True)
         results = []
-        for crit_score, tfidf, idf_val, term in candidates[:top_n]:
+        for score, tfidf, idf_val, term in candidates[:top_n]:
             results.append({
                 "term": term,
                 "tfidf_score": round(float(tfidf), 4),
                 "idf": round(float(idf_val), 2),
-                "rarity": "Critical" if idf_val >= 5.0 else "High"
+                "rarity": "High" if idf_val >= 5.0 else "Medium"
             })
         return results
 
-    def _explain_pair(self, idx_a, idx_b, top_n=4):
+    def _explain_pair(self, idx_a, idx_b, top_n=5):
         """
         Explains why movie B is similar to movie A using component-wise TF-IDF dot products,
-        specifically filtering for rare and critical shared thematic terms.
+        filtering for descriptive shared thematic terms.
         """
         vec_a = self.tfidf_matrix[idx_a].toarray().flatten()
         vec_b = self.tfidf_matrix[idx_b].toarray().flatten()
@@ -179,8 +178,7 @@ class MovieRecommender:
         shared_scores = vec_a * vec_b
         GENERIC_TAGS = {
             "action", "drama", "thriller", "adventure", "sci-fi", "scifi", "comedy",
-            "crime", "romance", "action adventure", "adventure thriller", "action scifi",
-            "thriller action", "crime drama", "scifi action"
+            "crime", "romance"
         }
 
         scored_shared = []
@@ -188,8 +186,8 @@ class MovieRecommender:
             if shared_scores[i] > 0:
                 term = self.feature_names[i]
                 if term not in GENERIC_TAGS and len(term) > 2:
-                    crit_contribution = float(shared_scores[i] * (idf[i] ** 1.2))
-                    scored_shared.append((crit_contribution, shared_scores[i], vec_a[i], vec_b[i], term))
+                    contrib = float(shared_scores[i] * (idf[i] ** 0.8))
+                    scored_shared.append((contrib, shared_scores[i], vec_a[i], vec_b[i], term))
 
         scored_shared.sort(key=lambda x: x[0], reverse=True)
 

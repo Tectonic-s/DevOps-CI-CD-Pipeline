@@ -2025,8 +2025,16 @@ input[type="range"]::-webkit-slider-thumb:hover {
     border: 2px solid var(--accent-mint);
     color: var(--accent-mint);
     font-weight: 800;
-    transform: scale(1.08);
-    box-shadow: 0 4px 14px rgba(15, 118, 110, 0.25);
+    transform: scale(1.05);
+    box-shadow: 0 4px 14px rgba(15, 118, 110, 0.2);
+}
+
+.anim-word-token.retained.key-feature {
+    background: linear-gradient(135deg, #f0fdfa, #ecfdf5);
+    border: 2.5px solid #059669;
+    color: #047857;
+    transform: scale(1.1);
+    box-shadow: 0 4px 18px rgba(5, 150, 105, 0.35);
 }
 
 .anim-word-token.retained .token-status-tag {
@@ -2039,6 +2047,11 @@ input[type="range"]::-webkit-slider-thumb:hover {
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.03em;
+}
+
+.anim-word-token.retained.key-feature .token-status-tag {
+    background-color: #fef3c7;
+    color: #b45309;
 }
 
 /* Phase B: Candidate Movies Matching Block */
