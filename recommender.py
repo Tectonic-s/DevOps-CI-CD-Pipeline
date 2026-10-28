@@ -103,9 +103,23 @@ class MovieRecommender:
 
         print(f"TF-IDF Engine fitted successfully. Shape: {self.tfidf_matrix.shape}")
 
-    def get_all_movies(self):
-        """Returns lightweight list of all movies for search and dropdowns."""
-        return self.df[["id", "title", "year", "genres", "rating", "poster_url", "director"]].to_dict(orient="records")
+    def get_all_movies(self, limit=None):
+        """Returns lightweight list of movies for search and dropdowns."""
+        df_sub = self.df[["id", "title", "year", "genres", "rating", "poster_url", "director"]]
+        if limit is not None and limit > 0:
+            df_sub = df_sub.head(limit)
+        return df_sub.to_dict(orient="records")
+
+    def search_movies_by_title(self, query, limit=30):
+        """Search movies matching query substring in title."""
+        if not query:
+            return self.get_all_movies(limit=limit)
+        q = str(query).lower()
+        mask = self.df["title"].str.lower().str.contains(q, na=False)
+        subset = self.df[mask][["id", "title", "year", "genres", "rating", "poster_url", "director"]]
+        if limit and limit > 0:
+            subset = subset.head(limit)
+        return subset.to_dict(orient="records")
 
     def get_movie_by_id(self, movie_id):
         """Fetch complete details of a single movie."""

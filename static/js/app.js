@@ -114,24 +114,46 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function init() {
         setupEventListeners();
+        setupQuickPickTabs();
         updateWatchlistBadge();
-        await fetchAllMovies();
-        await fetchStats();
-        // Load default movie (Inception) and run initial animation
-        await loadSourceMovieAndRecommend(state.currentSourceId);
+        // Immediately load default movie (Inception) and run initial 0.25x animation
+        loadSourceMovieAndRecommend(state.currentSourceId);
+        // Non-blocking background fetches
+        fetchStats();
+        fetchAllMovies();
     }
 
     async function fetchAllMovies() {
         try {
-            const res = await fetch("/api/movies");
+            const res = await fetch("/api/movies?limit=300");
             const data = await res.json();
             if (data.status === "success") {
                 state.allMovies = data.movies;
             }
         } catch (err) {
-            console.error("Failed to load movies:", err);
-            showToast("Failed to connect to movies API");
+            console.warn("Background catalog fetch deferred:", err);
+            // Non-blocking: Do not show disruptive error toast on page load
         }
+    }
+
+    function setupQuickPickTabs() {
+        const tabsContainer = document.getElementById("quick-pick-tabs");
+        if (!tabsContainer || !elements.quickPickChips) return;
+
+        tabsContainer.querySelectorAll(".qp-tab").forEach(tab => {
+            tab.addEventListener("click", () => {
+                tabsContainer.querySelectorAll(".qp-tab").forEach(t => t.classList.remove("active"));
+                tab.classList.add("active");
+                const cat = tab.dataset.category;
+                elements.quickPickChips.querySelectorAll(".chip").forEach(chip => {
+                    if (cat === "all" || chip.dataset.category === cat) {
+                        chip.style.display = "inline-flex";
+                    } else {
+                        chip.style.display = "none";
+                    }
+                });
+            });
+        });
     }
 
     async function fetchStats() {
@@ -623,7 +645,19 @@ document.addEventListener("DOMContentLoaded", () => {
             const isBookmarked = state.watchlist.some(m => m.id === movie.id);
             const genres = movie.genres ? movie.genres.split(",").slice(0, 3) : [];
             const similarityPercent = movie.similarity_percent !== undefined ? movie.similarity_percent : (movie.cosine_similarity ? (movie.cosine_similarity * 100).toFixed(1) : 0);
-            const isHighMatch = similarityPercent >= 15.0;
+            
+            let badgeClass = "";
+            let badgeIcon = '<i class="fa-solid fa-chart-simple"></i>';
+            if (similarityPercent >= 80.0) {
+                badgeClass = "match-exceptional";
+                badgeIcon = '<i class="fa-solid fa-fire text-amber"></i>';
+            } else if (similarityPercent >= 60.0) {
+                badgeClass = "match-high";
+                badgeIcon = '<i class="fa-solid fa-sparkles"></i>';
+            } else if (similarityPercent >= 40.0) {
+                badgeClass = "match-moderate";
+                badgeIcon = '<i class="fa-solid fa-chart-simple"></i>';
+            }
 
             // Matched keyword chips from description
             let matchedChipsHtml = "";
@@ -652,8 +686,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="movie-card" data-id="${movie.id}">
                     <div class="movie-card-poster-wrap">
                         <img src="${movie.poster_url || 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80'}" alt="${movie.title}" class="movie-card-poster" loading="lazy">
-                        <div class="similarity-badge ${isHighMatch ? 'high-match' : ''}">
-                            <i class="fa-solid fa-chart-simple"></i> ${similarityPercent}% Match
+                        <div class="similarity-badge ${badgeClass}">
+                            ${badgeIcon} ${similarityPercent}% Match
                         </div>
                         <button class="btn-bookmark-card ${isBookmarked ? 'bookmarked' : ''}" data-id="${movie.id}" title="${isBookmarked ? 'Remove from Watchlist' : 'Save to Watchlist'}">
                             <i class="${isBookmarked ? 'fa-solid' : 'fa-regular'} fa-bookmark"></i>
@@ -714,7 +748,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 const id = parseInt(btn.dataset.id);
                 updateQuickPickActive(id);
                 loadSourceMovieAndRecommend(id);
-                elements.searchInput.value = "";
+                if (elements.searchInput) elements.searchInput.value = "";
+                if (elements.animationStageCard) {
+                    elements.animationStageCard.scrollIntoView({ behavior: "smooth", block: "start" });
+                }
             });
         });
     }
@@ -836,7 +873,7 @@ document.addEventListener("DOMContentLoaded", () => {
     elements.filterGenre.addEventListener("change", () => {
         if (state.activeSearchMode === "movie") {
             fetchRecommendations();
-        } else {
+        } else if (elements.searchInput) {
             executePromptVectorSearch(elements.searchInput.value.trim());
         }
     });
@@ -844,7 +881,7 @@ document.addEventListener("DOMContentLoaded", () => {
     elements.filterTopN.addEventListener("change", () => {
         if (state.activeSearchMode === "movie") {
             fetchRecommendations();
-        } else {
+        } else if (elements.searchInput) {
             executePromptVectorSearch(elements.searchInput.value.trim());
         }
     });
@@ -856,7 +893,7 @@ document.addEventListener("DOMContentLoaded", () => {
     elements.filterRating.addEventListener("change", () => {
         if (state.activeSearchMode === "movie") {
             fetchRecommendations();
-        } else {
+        } else if (elements.searchInput) {
             executePromptVectorSearch(elements.searchInput.value.trim());
         }
     });

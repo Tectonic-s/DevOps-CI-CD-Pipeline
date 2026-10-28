@@ -56,33 +56,74 @@
         <!-- Hero Search Section -->
         <section class="hero-section">
             <div class="hero-kicker">
-                <i class="fa-solid fa-wand-magic-sparkles"></i> Interactive Algorithm Demonstration
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Official Kaggle TMDB 5,000 Dataset
             </div>
-            <h1 class="hero-title">Watch TF-IDF Find Similar Movies in Real Time</h1>
+            <h1 class="hero-title">TF-IDF Vector Space Recommender</h1>
             <p class="hero-subtitle">
-                Search any movie to watch the description break apart into words, discard generic stopwords, extract high-value TF-IDF keywords, and find matching films through description word overlap.
+                Watch how natural language processing tokenizes real movie synopses, discards generic stopwords, extracts rare discriminative terms, and discovers matching films across 4,813 authentic Kaggle TMDB movies in real time.
             </p>
 
-            <!-- Quick Pick Chips Demo Bar -->
+            <div class="dataset-stats-badge">
+                <span class="badge-item"><i class="fa-solid fa-database text-mint"></i> <strong>4,813</strong> Real Movies</span>
+                <span class="badge-sep">•</span>
+                <span class="badge-item"><i class="fa-solid fa-shapes text-mint"></i> <strong>6,000</strong> TF-IDF Dimensions</span>
+                <span class="badge-sep">•</span>
+                <span class="badge-item"><i class="fa-solid fa-gauge-high text-mint"></i> <strong>0.25x</strong> Slow-Motion Playback</span>
+            </div>
+
+            <!-- Quick Pick Chips Demo Bar with Genre Tabs -->
             <div class="quick-picks-container standalone-quickpicks">
                 <div class="quick-picks-header">
-                    <span class="quick-picks-label"><i class="fa-solid fa-film"></i> Click a Film to Demo TF-IDF Animation:</span>
+                    <div class="qp-header-title">
+                        <span class="quick-picks-label"><i class="fa-solid fa-film"></i> Click any film to demo TF-IDF animation:</span>
+                    </div>
+                    <div class="quick-pick-tabs" id="quick-pick-tabs">
+                        <button type="button" class="qp-tab active" data-category="all">All</button>
+                        <button type="button" class="qp-tab" data-category="scifi"><i class="fa-solid fa-rocket"></i> Sci-Fi</button>
+                        <button type="button" class="qp-tab" data-category="action"><i class="fa-solid fa-bolt"></i> Action</button>
+                        <button type="button" class="qp-tab" data-category="thriller"><i class="fa-solid fa-brain"></i> Mind-Bending</button>
+                        <button type="button" class="qp-tab" data-category="global"><i class="fa-solid fa-earth-asia"></i> Indian Cinema</button>
+                        <button type="button" class="qp-tab" data-category="classics"><i class="fa-solid fa-trophy"></i> Masterpieces</button>
+                    </div>
                 </div>
                 <div class="quick-pick-chips" id="quick-pick-chips">
-                    <button type="button" class="chip active" data-id="1"><i class="fa-solid fa-play"></i> Inception</button>
-                    <button type="button" class="chip" data-id="2"><i class="fa-solid fa-play"></i> Interstellar</button>
-                    <button type="button" class="chip" data-id="144"><i class="fa-solid fa-play"></i> Real Steel</button>
-                    <button type="button" class="chip" data-id="145"><i class="fa-solid fa-play"></i> Transformers</button>
-                    <button type="button" class="chip" data-id="182"><i class="fa-solid fa-play"></i> Vikram</button>
-                    <button type="button" class="chip" data-id="183"><i class="fa-solid fa-play"></i> Leo</button>
-                    <button type="button" class="chip" data-id="3"><i class="fa-solid fa-play"></i> The Matrix</button>
-                    <button type="button" class="chip" data-id="24"><i class="fa-solid fa-play"></i> The Dark Knight</button>
-                    <button type="button" class="chip" data-id="7"><i class="fa-solid fa-play"></i> Dune</button>
-                    <button type="button" class="chip" data-id="50"><i class="fa-solid fa-play"></i> Parasite</button>
-                    <button type="button" class="chip" data-id="187"><i class="fa-solid fa-play"></i> Enthiran</button>
-                    <button type="button" class="chip" data-id="200"><i class="fa-solid fa-play"></i> RRR</button>
-                    <button type="button" class="chip" data-id="19"><i class="fa-solid fa-play"></i> Avatar</button>
-                    <button type="button" class="chip" data-id="6"><i class="fa-solid fa-play"></i> Arrival</button>
+                    <!-- Sci-Fi & Cosmic -->
+                    <button type="button" class="chip active" data-id="1" data-category="scifi"><i class="fa-solid fa-play"></i> Inception (2010)</button>
+                    <button type="button" class="chip" data-id="2" data-category="scifi"><i class="fa-solid fa-play"></i> Interstellar (2014)</button>
+                    <button type="button" class="chip" data-id="3" data-category="scifi"><i class="fa-solid fa-play"></i> The Matrix (1999)</button>
+                    <button type="button" class="chip" data-id="7" data-category="scifi"><i class="fa-solid fa-play"></i> Dune (1984)</button>
+                    <button type="button" class="chip" data-id="6" data-category="scifi"><i class="fa-solid fa-play"></i> Arrival (2016)</button>
+                    <button type="button" class="chip" data-id="19" data-category="scifi"><i class="fa-solid fa-play"></i> Avatar (2009)</button>
+
+                    <!-- Action & Sequels -->
+                    <button type="button" class="chip" data-id="24" data-category="action"><i class="fa-solid fa-play"></i> The Dark Knight (2008)</button>
+                    <button type="button" class="chip" data-id="21" data-category="action"><i class="fa-solid fa-play"></i> The Dark Knight Rises (2012)</button>
+                    <button type="button" class="chip" data-id="145" data-category="action"><i class="fa-solid fa-play"></i> Transformers (2007)</button>
+                    <button type="button" class="chip" data-id="55" data-category="action"><i class="fa-solid fa-play"></i> Transformers 2 (2009)</button>
+                    <button type="button" class="chip" data-id="144" data-category="action"><i class="fa-solid fa-play"></i> Real Steel (2011)</button>
+                    <button type="button" class="chip" data-id="87" data-category="action"><i class="fa-solid fa-play"></i> Iron Man (2008)</button>
+
+                    <!-- Thriller / Mind Bending -->
+                    <button type="button" class="chip" data-id="460" data-category="thriller"><i class="fa-solid fa-play"></i> Shutter Island (2010)</button>
+                    <button type="button" class="chip" data-id="3589" data-category="thriller"><i class="fa-solid fa-play"></i> Memento (2000)</button>
+                    <button type="button" class="chip" data-id="1571" data-category="thriller"><i class="fa-solid fa-play"></i> Se7en (1995)</button>
+                    <button type="button" class="chip" data-id="682" data-category="thriller"><i class="fa-solid fa-play"></i> Fight Club (1999)</button>
+                    <button type="button" class="chip" data-id="50" data-category="thriller"><i class="fa-solid fa-play"></i> Parasite (2019)</button>
+
+                    <!-- Indian Cinema Classics -->
+                    <button type="button" class="chip" data-id="182" data-category="global"><i class="fa-solid fa-play"></i> Vikram (2022)</button>
+                    <button type="button" class="chip" data-id="183" data-category="global"><i class="fa-solid fa-play"></i> Leo (2023)</button>
+                    <button type="button" class="chip" data-id="10" data-category="global"><i class="fa-solid fa-play"></i> Kaithi (2019)</button>
+                    <button type="button" class="chip" data-id="187" data-category="global"><i class="fa-solid fa-play"></i> Enthiran (2010)</button>
+                    <button type="button" class="chip" data-id="11" data-category="global"><i class="fa-solid fa-play"></i> 2.0 (2018)</button>
+                    <button type="button" class="chip" data-id="200" data-category="global"><i class="fa-solid fa-play"></i> RRR (2022)</button>
+                    <button type="button" class="chip" data-id="14" data-category="global"><i class="fa-solid fa-play"></i> Baahubali (2015)</button>
+
+                    <!-- Masterpieces -->
+                    <button type="button" class="chip" data-id="3248" data-category="classics"><i class="fa-solid fa-play"></i> Pulp Fiction (1994)</button>
+                    <button type="button" class="chip" data-id="829" data-category="classics"><i class="fa-solid fa-play"></i> Forrest Gump (1994)</button>
+                    <button type="button" class="chip" data-id="1899" data-category="classics"><i class="fa-solid fa-play"></i> Shawshank Redemption (1994)</button>
+                    <button type="button" class="chip" data-id="1865" data-category="classics"><i class="fa-solid fa-play"></i> GoodFellas (1990)</button>
                 </div>
             </div>
         </section>
@@ -226,8 +267,9 @@
                     <p class="section-subtitle" id="results-subheading">Ranked by shared keyword overlap and contextual plot similarity</p>
                 </div>
                 <div class="similarity-legend">
-                    <span class="legend-pill high-match"><span class="legend-dot"></span> Strong Match (&gt;15%)</span>
-                    <span class="legend-pill"><span class="legend-dot subtle"></span> Related Theme</span>
+                    <span class="legend-pill exceptional-match"><span class="legend-dot exceptional"></span> Exceptional Overlap (&gt;80%)</span>
+                    <span class="legend-pill high-match"><span class="legend-dot"></span> Strong Match (60%–80%)</span>
+                    <span class="legend-pill subtle-match"><span class="legend-dot subtle"></span> Thematic Similarity (40%–60%)</span>
                 </div>
             </div>
 
@@ -325,14 +367,14 @@ from sklearn.metrics.pairwise import cosine_similarity
 # 1. Initialize Vectorizer with Unigrams + Bigrams
 vectorizer = TfidfVectorizer(
     stop_words="english",
-    max_features=5000,
+    max_features=6000,
     ngram_range=(1, 2),
     sublinear_tf=True
 )
 
 # 2. Fit and Transform Metadata Soup into Sparse Matrix
 tfidf_matrix = vectorizer.fit_transform(df["soup"])
-# Shape: (247, 5000)
+# Shape: (4813, 6000)
 
 # 3. Compute Pairwise Cosine Similarity
 cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)

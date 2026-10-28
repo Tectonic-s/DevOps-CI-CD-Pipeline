@@ -38,8 +38,22 @@ def ping():
 
 @app.route("/api/movies", methods=["GET"])
 def get_movies():
-    """Returns list of all available movies for search and dropdown."""
-    movies = recommender.get_all_movies()
+    """Returns list of available movies for search and dropdown."""
+    limit_param = request.args.get("limit")
+    limit = int(limit_param) if limit_param and limit_param.isdigit() else None
+    query = request.args.get("q", "").strip()
+
+    if query:
+        movies = recommender.search_movies_by_title(query, limit=limit or 30)
+    elif limit is not None:
+        movies = recommender.get_all_movies(limit=limit)
+    else:
+        # If client explicitly asks for all, or default to 300 for snappy serverless delivery
+        if request.args.get("all", "").lower() in ("true", "1", "yes"):
+            movies = recommender.get_all_movies(limit=None)
+        else:
+            movies = recommender.get_all_movies(limit=300)
+
     return jsonify({"status": "success", "count": len(movies), "movies": movies})
 
 
